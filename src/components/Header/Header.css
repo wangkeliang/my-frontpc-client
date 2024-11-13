@@ -1,0 +1,16 @@
+.header {
+    background-color: #0070d2; /* 背景色 */
+    padding: 0;
+    color: white;
+}
+
+.header-tabs {
+    flex-grow: 1;
+    margin-left: 20px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0rem; /* 调整组件之间的间距 */
+}

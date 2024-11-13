@@ -1,0 +1,9 @@
+/* src/components/ContentArea/ContentArea.css */
+
+.content-area {
+    padding: 20px;
+    background-color: #f4f6f9;
+    min-height: 80vh;
+    border-top: 1px solid #e0e0e0;
+  }
+  

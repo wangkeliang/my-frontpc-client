@@ -1,0 +1,32 @@
+.searchSelectContainer {
+    margin: 0px 0;
+  }
+  
+  .inputContainer {
+    display: flex;
+    align-items: center;
+    border: 1px solid #d8dde6;
+    border-radius: 4px;
+    padding: 0 8px;
+    background-color: #fff;
+  }
+  
+  .searchInput {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+    padding: 1px 0;
+  }
+  
+  .searchIcon {
+    font-size: 1rem;
+    color: #5f6368; /* 专业的灰色图标颜色 */
+    margin-left: 8px;
+  }
+  
+  .searchInput:focus {
+    outline: none;
+    border-color: #6b6e74;
+  }
+  

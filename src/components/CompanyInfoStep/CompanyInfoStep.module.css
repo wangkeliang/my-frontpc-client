@@ -1,0 +1,107 @@
+.companyInfoStep {
+    padding: 3%;
+    background-color: #ffffff;
+    border: 1px solid #dcdfe4;
+    border-radius: 8px;
+    color: #333;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 90%;
+    margin: 0 auto;
+    width: 90%;
+    height: 100%;
+}
+
+.companyFormTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 2%;
+    color: #444;
+}
+
+.companyFormRow {
+    display: flex;
+    gap: 2%;
+    margin-bottom: 1%;
+}
+
+.companyFormGroup {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+}
+
+.companyLabel {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1%;
+    color: #555;
+}
+
+.companyFormInput,
+.companyPostalInput,
+.companyAddressInput {
+    height: 35px;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #333;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.companyAddressInput {
+    width: 85%;
+}
+
+.companyPostalInput {
+    width: 15%;
+}
+
+.companyPostalInputContainer {
+    display: flex;
+    align-items: center;
+    gap: 1%;
+}
+
+.companyPostalSymbol {
+    font-size: 1rem;
+    color: #333;
+}
+
+.companyFormInput:focus,
+.companyPostalInput:focus,
+.companyAddressInput:focus {
+    border-color: #0070d2;
+}
+
+.companyNextButton {
+    padding: 10px 20px;
+    background-color: #0070d2;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 2%;
+    transition: background-color 0.3s;
+}
+
+.companyNextButton:hover {
+    background-color: #005fb2;
+}
+
+.companyErrorMessage {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-bottom: 1.5%;
+}
+
+.companyRequiredStar {
+    color: #e74c3c;
+    margin-right: 2px;
+    font-weight: bold;
+}

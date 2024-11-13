@@ -1,0 +1,14 @@
+/* LoginPage.css */
+/* 将自定义样式最小化，只保留调整必要布局的部分 */
+.login-page {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+.login-panel-container,
+.promo-panel-container {
+    width: 50vw;
+    height: 100vh;
+    padding: 0;
+}

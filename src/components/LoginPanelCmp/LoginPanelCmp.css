@@ -1,0 +1,30 @@
+.login-panel {
+    width: 50vw; /* 占屏幕宽度的 50% */
+    height: 100vh; /* 占满屏幕高度 */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+    background-color: #f4f6f9; /* 淡灰色背景 */
+}
+
+.login-logo-container {
+    display: flex;
+    justify-content: left;
+    align-items: center; /* 保持垂直居中 */
+    padding: 20px; /* 添加一些内边距以使 logo 与顶部和左侧有一定的距离 */
+}
+
+.loginlogo {
+    width: 8vw; /* 随窗口大小自适应 */
+    height: 8vw; /* 高度与宽度一致以确保圆形外观 */
+    border-radius: 50%; /* 将 logo 变为圆形 */
+    object-fit: cover; /* 保持图片内容适应圆形边框 */
+}
+
+.login-container {
+    flex-grow: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

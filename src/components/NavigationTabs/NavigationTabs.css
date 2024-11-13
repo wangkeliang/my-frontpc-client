@@ -1,0 +1,51 @@
+.custom-navigation-tabs {
+    display: flex;
+    gap: 0.5vw; /* 减少标签间距 */
+    padding: 0.5vh 1vw; /* 调整整体内边距以节省空间 */
+    overflow-x: auto; /* 启用水平滚动条 */
+    white-space: nowrap; /* 禁止标签换行 */
+    scrollbar-width: thin; /* 在支持的浏览器上显示细的滚动条 */
+}
+
+.custom-navigation-tab {
+    color: #0070d2;
+    text-decoration: none;
+    padding: 0.3rem 0.6rem; /* 缩小标签的内边距 */
+    border-bottom: 2px solid transparent;
+    font-family: 'Salesforce Sans', sans-serif;
+    white-space: nowrap; /* 确保标签文字不会换行 */
+    position: relative;
+    transition: background-color 0.3s ease; /* 添加过渡效果 */
+}
+
+.custom-navigation-tab:hover {
+    background-color: #e3f2fd; /* 悬停时高亮背景 */
+    text-decoration: none; /* 禁止下划线 */
+}
+
+.custom-navigation-tab.active {
+    color: #005fb2;
+    font-weight: bold;
+    border-bottom-color: #005fb2;
+}
+
+/* 为标签之间添加竖线分隔符 */
+.custom-navigation-tab:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: -0.25vw; /* 调整位置 */
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%; /* 分隔线高度相对于标签高度 */
+    border-right: 1px solid #d8dde6; /* 竖线颜色 */
+}
+
+/* 针对滚动条的样式，提升用户体验 */
+.custom-navigation-tabs::-webkit-scrollbar {
+    height: 4px; /* 调整滚动条高度 */
+}
+
+.custom-navigation-tabs::-webkit-scrollbar-thumb {
+    background-color: #cccccc;
+    border-radius: 3px;
+}

@@ -1,0 +1,62 @@
+/* EmailVerificationPage.css */
+
+/* 页面整体背景白色，内容靠上 */
+.email-verification-page {
+    display: flex;
+    align-items: flex-start; /* 内容靠上 */
+    justify-content: center; /* 内容居中 */
+    height: 100vh; /* 占满视口高度 */
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: #ffffff; /* 背景为白色 */
+    padding-top: 10vh; /* 增加顶部填充，使内容稍微向上移动 */
+  }
+  
+  .email-verification-box {
+    padding: 2rem;
+    max-width: 700px;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .email-verification-heading {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1rem;
+  }
+  
+  .email-verification-content {
+    margin-bottom: 1rem;
+  }
+  
+  .email-verification-button-container {
+    text-align: center;
+    margin-top: 1.5rem;
+  }
+  
+  .email-verification-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 5px;
+    background-color: #0070f3;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .email-verification-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  .email-verification-button:hover:enabled {
+    background-color: #005bb5;
+  }
+  
+  .email-verification-resend-message {
+    color: #2e8540;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 1.5rem;
+  }
+  

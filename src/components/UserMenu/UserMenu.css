@@ -1,0 +1,94 @@
+.user-menu {
+    position: relative;
+}
+  
+.user-menu-button {
+    background: #8c8c8c;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+}
+  
+.user-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #8c8c8c;
+}
+  
+.user-menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: 45px;
+    background: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 220px;
+    z-index: 1000;
+    border-radius: 8px;
+    padding: 0.5rem;
+    font-family: 'Salesforce Sans', Arial, sans-serif; /* 使用 SF Lightning 风格的字体 */
+}
+  
+.user-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+  
+.user-avatar-large {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 1.2rem;
+    border: 2px solid #e0e0e0;
+}
+  
+.user-name {
+    font-weight: bold;
+    color: #333;
+    flex-grow: 1;
+}
+  
+.close-button {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #888;
+}
+  
+.user-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    color: #4a4a4a; /* 设置文字颜色 */
+}
+  
+.user-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #595959;
+    transition: background-color 0.2s;
+}
+  
+.user-menu-item:hover {
+    background-color: #f3f2f2;
+}
+  
+.user-menu-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 2rem;
+    fill: #808992; /* SF Lightning 蓝色 */
+}
+  
+.logout {
+    color: #d9534f; /* 红色用于突出显示“退出” */
+}

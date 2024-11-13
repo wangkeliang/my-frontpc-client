@@ -1,0 +1,64 @@
+.system-error-page {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* 将位置调整到页面上方 */
+    height: 100vh; /* 占满全屏高度 */
+    background-color: #f4f6f9; /* Lightning 风格的浅灰背景 */
+    color: #080707; /* 默认字体颜色 */
+    font-family: 'Helvetica Neue', Arial, sans-serif; /* 更专业的字体 */
+    padding-top: 50px; /* 增加顶部内边距以靠上 */
+  }
+  
+  .system-error-container {
+    max-width: 800px; /* 增加宽度 */
+    padding: 40px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* 更明显的阴影 */
+    border-radius: 8px;
+    text-align: center; /* 默认中心对齐文本 */
+    position: relative; /* 使联系方式绝对定位 */
+  }
+  
+  .system-error-header {
+    font-size: 2em; /* 增大字体 */
+    color: #c23934; /* 错误消息的红色 */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 居中对齐图标和文字 */
+    margin-bottom: 20px;
+    font-weight: bold; /* 粗体显示标题 */
+  }
+  
+  .error-icon {
+    font-size: 1.5em;
+    color: #c23934; /* 图标颜色 */
+    margin-right: 10px; /* 图标和文字的间距 */
+  }
+  
+  .system-error-message {
+    margin: 20px 0;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  .system-error-message-left {
+    text-align: left; /* 将这段文字左对齐 */
+  }
+  
+  .system-error-link {
+    color: #0070d2; /* Lightning 风格的蓝色 */
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .system-error-link:hover {
+    text-decoration: underline;
+  }
+  
+  .contact-info {
+    position: absolute;
+    right: 20px; /* 距右侧的距离 */
+    bottom: 20px; /* 距底部的距离 */
+    font-size: 0.9rem;
+  }
+  

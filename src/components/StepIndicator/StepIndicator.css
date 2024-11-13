@@ -1,0 +1,58 @@
+.step-indicator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 2rem;
+    font-weight: bold;
+  }
+  
+  .step-label-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    text-align: center;
+    flex: 1;
+  }
+  
+  .step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #d8dde6;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+  
+  .step-circle.active {
+    background-color: #0070d2; /* 高亮当前步骤 */
+  }
+  
+  .step-label {
+    margin-top: 0.5rem;
+    color: #666;
+    transition: color 0.3s;
+    font-size: 0.875rem;
+  }
+  
+  .step-label-container.completed .step-circle {
+    background-color: #4caf50; /* 已完成的步骤颜色 */
+  }
+  
+  .step-line {
+    height: 2px;
+    background-color: #d8dde6;
+    flex-grow: 1;
+    margin: 0 8px;
+  }
+  
+  .step-label-container:last-child .step-line {
+    display: none; /* 隐藏最后一个步骤的连线 */
+  }
+  

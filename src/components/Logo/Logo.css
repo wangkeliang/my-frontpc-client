@@ -1,0 +1,14 @@
+/* src/components/Header/Logo.css */
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+  }
+  
+  .logo {
+    height: 40px; /* 根据需求调整大小 */
+    width: auto;
+  }
+  
