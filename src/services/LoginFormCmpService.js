@@ -2,7 +2,8 @@
 
 import { loginUser, clearError } from '../redux/auth/authSlice';
 import { validateEmailFormat } from '../utils/Common'; // 引入通用的邮箱验证方法
-
+import { fetchUserPermissions } from '../redux/permission/permissionSlice'; // Import fetchUserPermissions
+import WebSocketClient from './webSocketClient'; // 导入 WebSocketClient
 
 export function initLoginForm(setEmail, setPassword, setRememberMe) {
     const { savedEmail, savedPassword, rememberMe } = loadSavedCredentials();
@@ -94,6 +95,21 @@ export function handleLogin(dispatch, email, password, setLocalError) {
     return;
   }
 
-  // 发送登录请求
-  dispatch(loginUser({ email, password }));
+  dispatch(loginUser({ email, password }))
+  .unwrap() // 使用 unwrap() 来处理异步操作的结果
+  .then((actionPayload) => {
+    // 登录成功后调用 fetchUserPermissions
+    const { userId } = actionPayload;
+    console.log('userId=',userId);
+    dispatch(fetchUserPermissions(userId));
+    // // 在此处调用 WebSocketClient 的 connect 方法
+    // console.log('****webSocketClient is called');
+    const webSocketClient = new WebSocketClient();
+    webSocketClient.connect();
+  })
+  .catch((error) => {
+    // 处理登录失败的情况
+    setLocalError(error);
+  });
+ 
 }

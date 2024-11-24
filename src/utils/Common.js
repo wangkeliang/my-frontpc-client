@@ -1,6 +1,6 @@
 // src/utils/Common.js
 import { v4 as uuidv4 } from 'uuid';
-
+import CryptoJS from 'crypto-js';
 /**
  * 验证电子邮件格式
  * - 使用正则表达式验证电子邮件的格式是否有效
@@ -38,3 +38,4 @@ export function getDeviceId() {
     }
     return deviceId;
   }
+ 

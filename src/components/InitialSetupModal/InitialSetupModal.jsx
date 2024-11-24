@@ -25,6 +25,7 @@ const InitialSetupModal = () => {
   const { currentStep, showModal, steps, isLoading, error } = useSelector((state) => state.initialSetup);
 
   useEffect(() => {
+    console.log('***call fetchInitialSetupData');
     dispatch(fetchInitialSetupData());
     console.log('Initial setup data fetch initiated');
   }, [dispatch]);

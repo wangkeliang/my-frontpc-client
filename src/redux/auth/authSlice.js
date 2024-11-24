@@ -1,56 +1,39 @@
-// src/redux/login/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { publicApi, authApi } from '../../services/ApiService';
+import { apiHandler } from '../../utils/apiHandler'; // 引入通用的处理函数
+import { publicApi, authApi } from '../../services/ApiService'; // 引入 API 实例
 import { getDeviceId } from '../../utils/Common'; // 引用共通方法
-
-export const registerUser = createAsyncThunk(
-  'auth/registerUser',
-  async (userData, { rejectWithValue }) => {
-    try {
-      console.log('**registerUser is begin');
-      console.log(userData);
-      const response = await publicApi.post('/auth/register', userData);
-      console.log('response=',response);
-      if (response.data.status !== 'success') {
-        const errorMessage = response.data.error?.[0]?.errorMessage;
-        console.log(errorMessage);
-        return rejectWithValue(errorMessage);
-      }
-      return { ...response.data, email: userData.email }; // 返回 email 用于存储
-    } catch (error) {
-      if (error?.response?.data?.error) {
-        return rejectWithValue(error.response.data.error[0].errorMessage);
-      }
-      return rejectWithValue('登録に失敗しました。もう一度お試しください。');
-    }
-  }
-);
 
 // 异步登录操作
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
-    try {
-      const deviceId = getDeviceId(); // 使用共通方法
-      const response = await publicApi.post('/auth/login', { email, password, deviceId });
+    const deviceId = getDeviceId();
+    const data = { email, password, deviceId };
 
-      if (response.data.status === 'success') {
-        const { token, deviceId, userId, email } = response.data.data;
-        localStorage.setItem('token', token);
-        localStorage.setItem('deviceId', deviceId);
-        localStorage.setItem('userId', userId);
-        localStorage.setItem('email', email);
-        return { token, deviceId, userId, email };
-      } else {
-        const errorMessage = response.data.error[0].errorMessage || 'ログインに失敗しました';
-        return rejectWithValue(errorMessage);
-      }
-    } catch (error) {
-      if (error?.response?.data?.error) {
-        return rejectWithValue(error.response.data.error[0].errorMessage);
-      }
-      return rejectWithValue(error.response?.data?.message || 'ログインに失败しました');
-    }
+    return new Promise((resolve, reject) => {
+      apiHandler(
+        publicApi,
+        '/auth/login',
+        data,
+        // 成功回调
+        (responseData) => {
+          const { token, deviceId, userId, email,apikey } = responseData;
+          localStorage.setItem('token', token);
+          localStorage.setItem('deviceId', deviceId);
+          localStorage.setItem('userId', userId);
+          localStorage.setItem('email', email);
+          resolve({ token, deviceId, userId, email,apikey });
+        },
+        // 失败回调
+        ({ errorMessage }) => {
+          reject(rejectWithValue(errorMessage));
+        },
+        // 错误回调
+        ({ errorMessage }) => {
+          reject(rejectWithValue(errorMessage));
+        }
+      );
+    });
   }
 );
 
@@ -58,52 +41,69 @@ export const loginUser = createAsyncThunk(
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async (_, { getState, rejectWithValue }) => {
-    try {
-      const { userId, deviceId } = getState().auth;
-      if (!userId || !deviceId) throw new Error('User not logged in');
-      console.log('logout is called');
-      console.log('userId=', userId);
-      console.log('deviceId=', deviceId);
+    const { userId, deviceId } = getState().auth;
 
-      const response = await authApi.post('/auth/logout', { userId, deviceId });
-
-      // 清理本地存储和状态
-      localStorage.removeItem('token');
-      localStorage.removeItem('deviceId');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('email');
-      // 跳转到登录页面
-      window.location.href = '/login';
-      
-      return true; // 表示登出成功
-    } catch (error) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('deviceId');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('email');
-      window.location.href = '/login';
-    }
+    return new Promise((resolve, reject) => {
+      apiHandler(
+        authApi,
+        '/auth/logout',
+        { userId, deviceId },
+        // 成功回调
+        () => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('deviceId');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('email');
+          window.location.href = '/login';
+          resolve(true);
+        },
+        // 失败回调
+        ({ errorMessage }) => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('deviceId');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('email');
+          window.location.href = '/login';
+          reject(rejectWithValue(errorMessage));
+        },
+        // 错误回调
+        ({ errorMessage }) => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('deviceId');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('email');
+          window.location.href = '/login';
+          reject(rejectWithValue(errorMessage));
+        }
+      );
+    });
   }
 );
 
 // 心跳检测
 export const startHeartbeat = createAsyncThunk(
   'auth/startHeartbeat',
-  async (_, { getState, dispatch, rejectWithValue }) => {
-    try {
-      console.log('startHeartbeat is called');
-      const { token, userId, deviceId } = getState().auth;
-      if (!userId || !deviceId || !token) return;
+  async (_, { getState, dispatch }) => {
+    const { token, userId, deviceId } = getState().auth;
+    if (!userId || !deviceId || !token) return;
 
-      const response = await authApi.post('/session/keep-alive', { userId, deviceId });
-      console.log(response);
-
-      if (response.data.status !== 'success') {
-        dispatch(logoutUser()); // 使用 dispatch 调用 logoutUser
+    apiHandler(
+      authApi,
+      '/session/keep-alive',
+      { userId, deviceId },
+      // 成功回调
+      () => {
+        // `status` 判断已在 `apiHandler` 内部处理，不再需要在这里判断
+      },
+      // 失败回调
+      () => {
+        dispatch(logoutUser());
+      },
+      // 错误回调
+      () => {
+        dispatch(logoutUser());
       }
-    } catch (error) {
-      dispatch(logoutUser()); // 使用 dispatch 调用 logoutUser
-    }
+    );
   }
 );
 
@@ -114,6 +114,7 @@ const authSlice = createSlice({
     email: null,
     token: null,
     deviceId: null,
+    apikey:null,
     loading: false,
     error: null,
   },
@@ -134,6 +135,8 @@ const authSlice = createSlice({
         state.email = action.payload.email;
         state.token = action.payload.token;
         state.deviceId = action.payload.deviceId;
+        state.apikey = action.payload.apikey;
+        console.log('***action.payload.apikey=',action.payload.apikey);
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -150,6 +153,7 @@ const authSlice = createSlice({
         state.email = null;
         state.token = null;
         state.deviceId = null;
+        state.apikey = null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
@@ -158,6 +162,7 @@ const authSlice = createSlice({
         state.email = null;
         state.token = null;
         state.deviceId = null;
+        state.apikey = null;
       })
       .addCase(startHeartbeat.rejected, (state, action) => {
         state.error = action.payload;

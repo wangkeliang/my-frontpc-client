@@ -24,6 +24,7 @@ function InactivityHandler() {
 
     if (token && deviceId) {
       const interval = setInterval(() => {
+        console.log('**begin startHeartbeat');
         dispatch(startHeartbeat());
       }, parseInt(process.env.REACT_APP_HEARTBEAT_INTERVAL_MS) || 5000);
 
@@ -33,6 +34,7 @@ function InactivityHandler() {
           dispatch(logoutUser());
         }, INACTIVITY_TIMEOUT);
       };
+      console.log('***INACTIVITY_TIMEOUT=',INACTIVITY_TIMEOUT);
 
       window.addEventListener('mousemove', resetInactivityTimer);
       window.addEventListener('keydown', resetInactivityTimer);
@@ -61,7 +63,7 @@ function InactivityHandler() {
 function App() {
   return (
     <Router>
-      <InactivityHandler />
+      {/* <InactivityHandler /> */}
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
