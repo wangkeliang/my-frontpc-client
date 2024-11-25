@@ -1,0 +1,16 @@
+.completion-step {
+    font-family: 'Salesforce Sans', Arial, sans-serif; /* 保持字体风格 */
+    padding: 20px;
+    max-width: 600px;
+    margin: 20px auto; /* 居中显示 */
+    text-align: left; /* 靠左对齐文字 */
+  }
+  
+  .completion-message {
+    font-size: 18px; /* 增大字体大小 */
+    color: #4a4a4a; /* 文字颜色 */
+    line-height: 2; /* 增大行间距，提升可读性 */
+    white-space: pre-line; /* 保留换行符 */
+    margin: 0; /* 清除多余的外边距 */
+  }
+  

@@ -10,6 +10,7 @@ export const fetchUserPermissions = createAsyncThunk(
       console.log('&&&fetchUserPermissions is called with userId:', userId);
       // 调用权限 API，传递 userId 参数
       const response = await authApi.post('/permissions/getUserPermission', { userId });
+      console.log('****response',response);
 
       if (response.data.status === 'success') {
         return response.data.data;

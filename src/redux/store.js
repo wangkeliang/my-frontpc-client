@@ -1,6 +1,10 @@
 // src/redux/store.js
 import { configureStore } from '@reduxjs/toolkit';
 import authSlice from './auth/authSlice';
+import userSlice from './user/userSlice';
+import masterSlice from './master/masterSlice';
+import applicationSlice from './application/applicationSlice';
+import companySlice from './company/companySlice';
 import caseReducer from './case/caseSlice';
 import candidateReducer from './candidate/candidateSlice';
 import tabReducer from './mainLayout/tabSlice';
@@ -17,6 +21,10 @@ const store = configureStore({
     register: registerReducer, // 添加 register 到 reducer 对象
     initialSetup: initialSetupReducer,
     permissions: permissionReducer, // 添加 permissions 到 reducer 对象
+    user: userSlice, 
+    company: companySlice, 
+    application:applicationSlice,
+    master:masterSlice,
   },
 });
 

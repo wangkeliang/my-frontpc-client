@@ -9,61 +9,14 @@ import ConfirmationPendingPage from './pages/ConfirmationPendingPage/Confirmatio
 import LoginPage from './pages/LoginPage/LoginPage';
 import MainPage from './pages/MainPage/MainPage';
 import EmailVerificationPage from './pages/EmailVerificationPage/EmailVerificationPage';
-import { startHeartbeat, logoutUser } from './redux/auth/authSlice';
+import { logoutUser } from './redux/auth/authSlice';
 import SystemErrorPage from './pages/SystemErrorPage/SystemErrorPage'; 
 const INACTIVITY_TIMEOUT = parseInt(process.env.REACT_APP_INACTIVITY_TIMEOUT_MS) || 300000;
 
-function InactivityHandler() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate(); 
-  const { token, deviceId, user } = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    let inactivityTimer;
-    console.log('**process.env.REACT_APP_HEARTBEAT_INTERVAL_MS=',process.env.REACT_APP_HEARTBEAT_INTERVAL_MS);
-
-    if (token && deviceId) {
-      const interval = setInterval(() => {
-        console.log('**begin startHeartbeat');
-        dispatch(startHeartbeat());
-      }, parseInt(process.env.REACT_APP_HEARTBEAT_INTERVAL_MS) || 5000);
-
-      const resetInactivityTimer = () => {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => {
-          dispatch(logoutUser());
-        }, INACTIVITY_TIMEOUT);
-      };
-      console.log('***INACTIVITY_TIMEOUT=',INACTIVITY_TIMEOUT);
-
-      window.addEventListener('mousemove', resetInactivityTimer);
-      window.addEventListener('keydown', resetInactivityTimer);
-
-      resetInactivityTimer();
-
-      return () => {
-        clearInterval(interval);
-        clearTimeout(inactivityTimer);
-        window.removeEventListener('mousemove', resetInactivityTimer);
-        window.removeEventListener('keydown', resetInactivityTimer);
-      };
-    }
-  }, [token, deviceId, dispatch]);
-
-  // 如果用户被登出，将导航到登录页面
-  // useEffect(() => {
-  //   if (!user) {
-  //     navigate('/login');
-  //   }
-  // }, [user, navigate]);
-
-  return null;
-}
 
 function App() {
   return (
-    <Router>
-      {/* <InactivityHandler /> */}
+    <Router>     
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />

@@ -105,3 +105,6 @@
     margin-right: 2px;
     font-weight: bold;
 }
+.errorInput {
+    border: 2px solid red;
+  }

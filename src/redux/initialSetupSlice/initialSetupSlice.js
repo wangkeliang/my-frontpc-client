@@ -29,6 +29,9 @@ const initialSetupSlice = createSlice({
     setCurrentStep: (state, action) => {
       state.currentStep = action.payload;
     },
+    hideModal(state) {
+      state.showModal = false; // 隐藏模态窗口
+    },
   },
   extraReducers: (builder) => {
     builder

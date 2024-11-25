@@ -15,14 +15,19 @@ export const loginUser = createAsyncThunk(
         publicApi,
         '/auth/login',
         data,
+        'POST',
         // 成功回调
         (responseData) => {
-          const { token, deviceId, userId, email,apikey } = responseData;
-          localStorage.setItem('token', token);
-          localStorage.setItem('deviceId', deviceId);
+          const { userId, email, token, deviceId,domain, companyId,apikey} = responseData;
           localStorage.setItem('userId', userId);
           localStorage.setItem('email', email);
-          resolve({ token, deviceId, userId, email,apikey });
+          localStorage.setItem('token', token);
+          localStorage.setItem('deviceId', deviceId);
+          localStorage.setItem('domain', domain);
+          localStorage.setItem('companyId', companyId);
+          localStorage.setItem('apikey', apikey);          
+          
+          resolve({ token, deviceId, userId, email,domain,companyId,apikey });
         },
         // 失败回调
         ({ errorMessage }) => {
@@ -48,62 +53,38 @@ export const logoutUser = createAsyncThunk(
         authApi,
         '/auth/logout',
         { userId, deviceId },
+        'POST',
         // 成功回调
         () => {
           localStorage.removeItem('token');
           localStorage.removeItem('deviceId');
-          localStorage.removeItem('userId');
-          localStorage.removeItem('email');
+          localStorage.removeItem('companyId');
+          localStorage.removeItem('apikey');
           window.location.href = '/login';
           resolve(true);
         },
         // 失败回调
         ({ errorMessage }) => {
+
           localStorage.removeItem('token');
           localStorage.removeItem('deviceId');
-          localStorage.removeItem('userId');
-          localStorage.removeItem('email');
+          localStorage.removeItem('companyId');
+          localStorage.removeItem('apikey');
           window.location.href = '/login';
           reject(rejectWithValue(errorMessage));
         },
         // 错误回调
         ({ errorMessage }) => {
+
           localStorage.removeItem('token');
           localStorage.removeItem('deviceId');
-          localStorage.removeItem('userId');
-          localStorage.removeItem('email');
+          localStorage.removeItem('companyId');
+          localStorage.removeItem('apikey');
           window.location.href = '/login';
           reject(rejectWithValue(errorMessage));
         }
       );
     });
-  }
-);
-
-// 心跳检测
-export const startHeartbeat = createAsyncThunk(
-  'auth/startHeartbeat',
-  async (_, { getState, dispatch }) => {
-    const { token, userId, deviceId } = getState().auth;
-    if (!userId || !deviceId || !token) return;
-
-    apiHandler(
-      authApi,
-      '/session/keep-alive',
-      { userId, deviceId },
-      // 成功回调
-      () => {
-        // `status` 判断已在 `apiHandler` 内部处理，不再需要在这里判断
-      },
-      // 失败回调
-      () => {
-        dispatch(logoutUser());
-      },
-      // 错误回调
-      () => {
-        dispatch(logoutUser());
-      }
-    );
   }
 );
 
@@ -114,6 +95,8 @@ const authSlice = createSlice({
     email: null,
     token: null,
     deviceId: null,
+    domain:null,
+    companyId:null,
     apikey:null,
     loading: false,
     error: null,
@@ -135,8 +118,10 @@ const authSlice = createSlice({
         state.email = action.payload.email;
         state.token = action.payload.token;
         state.deviceId = action.payload.deviceId;
+        state.domain = action.payload.domain;
+        state.companyId = action.payload.companyId;
         state.apikey = action.payload.apikey;
-        console.log('***action.payload.apikey=',action.payload.apikey);
+        console.log('***state.domain =',action.payload);
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -153,6 +138,8 @@ const authSlice = createSlice({
         state.email = null;
         state.token = null;
         state.deviceId = null;
+        state.domain = null;
+        state.companyId = null;
         state.apikey = null;
       })
       .addCase(logoutUser.rejected, (state, action) => {
@@ -162,10 +149,9 @@ const authSlice = createSlice({
         state.email = null;
         state.token = null;
         state.deviceId = null;
+        state.domain = null;
+        state.companyId = null;
         state.apikey = null;
-      })
-      .addCase(startHeartbeat.rejected, (state, action) => {
-        state.error = action.payload;
       });
   },
 });

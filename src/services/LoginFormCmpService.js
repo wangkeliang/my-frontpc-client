@@ -98,12 +98,6 @@ export function handleLogin(dispatch, email, password, setLocalError) {
   dispatch(loginUser({ email, password }))
   .unwrap() // 使用 unwrap() 来处理异步操作的结果
   .then((actionPayload) => {
-    // 登录成功后调用 fetchUserPermissions
-    const { userId } = actionPayload;
-    console.log('userId=',userId);
-    dispatch(fetchUserPermissions(userId));
-    // // 在此处调用 WebSocketClient 的 connect 方法
-    // console.log('****webSocketClient is called');
     const webSocketClient = new WebSocketClient();
     webSocketClient.connect();
   })
