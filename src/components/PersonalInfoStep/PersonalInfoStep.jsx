@@ -94,6 +94,15 @@ const PersonalInfoStep = forwardRef((props, ref) => {
     setFields((prevFields) => ({ ...prevFields, [field]: value }));
   };
 
+  const handleSelect = (selected) => {
+    console.log('**handleSelect Selected item:', selected);
+    setFields((prevFields) => ({
+      ...prevFields,
+      managerId: selected.key, // 更新选中的 Manager ID
+    }));
+  };
+
+
   // --- 角色选择处理 ---
   const handleRoleChange = (event, value) => {
     // 如果公司信息为空，确保系统管理员角色始终在选中列表中
@@ -121,10 +130,13 @@ const PersonalInfoStep = forwardRef((props, ref) => {
   const managerTitle = ['姓名', 'メール', '部署'];
   const formattedCompanyMembers = companyMembers.map((member) => ({
     key: member.id,
-    display: `${member.firstName} ${member.lastName}`,
-    email: member.email,
-    department: member.department,
+    value: [
+      `${member.firstName} ${member.lastName}`, // 第一列，显示姓名
+      member.email, // 第二列，显示邮箱
+      member.department, // 第三列，显示部门
+    ],
   }));
+  console.log('***formattedCompanyMembers',formattedCompanyMembers);
 
   // --- 校验逻辑 ---
   const validateFields = () => {
@@ -372,13 +384,21 @@ const PersonalInfoStep = forwardRef((props, ref) => {
         <div className={styles.personalFormGroup}>
           <label htmlFor="manager" className={styles.personalLabel}>マネージャー:</label>
           <SearchSelectComponent
-            selecteditem={managerInfo ? {
-              key: managerInfo.id,
-              display: `${managerInfo.firstName} ${managerInfo.lastName}`,
-            } : null}
+            selecteditem={
+              managerInfo
+                ? {
+                    key: managerInfo.id,
+                    value: [
+                      `${managerInfo.firstName} ${managerInfo.lastName}`,
+                      managerInfo.email,
+                      managerInfo.department,
+                    ],
+                  }
+                : null
+            }
             title={managerTitle}
-            sourcelist={formattedCompanyMembers}
-            onSelect={(selected) => handleFieldChange('managerId', selected.key)}
+            sourcelist={formattedCompanyMembers || []}
+            onSelect={handleSelect}
           />
         </div>
       </div>

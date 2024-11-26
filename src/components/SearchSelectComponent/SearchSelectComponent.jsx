@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '@salesforce-ux/design-system/assets/styles/salesforce-lightning-design-system.min.css';
 import styles from './SearchSelectComponent.module.css';
 
-const SearchSelectComponent = ({ selecteditem, title, sourcelist }) => {
+const SearchSelectComponent = ({ selecteditem, title, sourcelist = [],onSelect  }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [searchResults, setSearchResults] = useState(sourcelist);
@@ -11,6 +11,11 @@ const SearchSelectComponent = ({ selecteditem, title, sourcelist }) => {
   const [dragging, setDragging] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    console.log('***sourcelist=',sourcelist);
+    setSearchResults(sourcelist || []); // 当 sourcelist 发生变化时更新搜索结果
+  }, [sourcelist]);
 
   useEffect(() => {
     if (selecteditem?.value) {
@@ -45,7 +50,9 @@ const SearchSelectComponent = ({ selecteditem, title, sourcelist }) => {
 
     // 过滤结果
     const filteredResults = value
-      ? sourcelist.filter((item) => item.value.some((val) => val.includes(value)))
+      ? sourcelist.filter((item) =>
+          item.value.some((val) => val.includes(value))
+        )
       : sourcelist; // 如果没有输入内容，显示所有结果
 
     setSearchResults(filteredResults);
@@ -53,8 +60,15 @@ const SearchSelectComponent = ({ selecteditem, title, sourcelist }) => {
   };
 
   const handleSelectItem = (item) => {
-    selecteditem.key = item.key;
-    selecteditem.value = item.value[0]; // 保存第一列的值
+    if (onSelect) {
+      console.log('**onSelect is called');
+      onSelect({
+        key: item.key,
+        value: item.value, // 假设输入框需要显示第一列值
+      });
+    } else {
+      console.warn('onSelect callback is not provided');
+    }
     handleCloseModal();
   };
 
@@ -91,6 +105,7 @@ const SearchSelectComponent = ({ selecteditem, title, sourcelist }) => {
   const onMouseUp = () => {
     setDragging(false);
   };
+
 
   return (
     <div className={styles.searchSelectContainer}>
