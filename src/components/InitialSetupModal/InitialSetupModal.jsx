@@ -21,13 +21,15 @@ import { fetchRoleMaster } from '../../redux/master/masterSlice';
 import StepIndicator from '../StepIndicator/StepIndicator';
 import WelcomeStep from '../WelcomeStep/WelcomeStep';
 import CompanyInfoStep from '../CompanyInfoStep/CompanyInfoStep';
-import ApplicationStep from '../ApplicationStep/ApplicationStep';
+import ApplicationInfoStep from '../ApplicationInfoStep/ApplicationInfoStep';
 import CompletionStep from '../CompletionStep/CompletionStep';
 import './InitialSetupModal.css';
+import { useUserMenu } from '../../services/UserMenuService';
 
 const InitialSetupModal = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { handleLogout } = useUserMenu(); // 引用 handleLogout 方法
 
   // 从 Redux Store 中获取状态
   const { currentStep, showModal, steps, error } = useSelector((state) => state.initialSetup);
@@ -37,6 +39,7 @@ const InitialSetupModal = () => {
   const personalInfoRef = useRef(null); // 定义 ref，用于保存 PersonalInfoStep 的方法
   const companyInfoRef = useRef(null); // 定义 ref，用于保存 CompanyInfoStep 的方法
   const completionRef = useRef(null);
+  const applicationInfoRef = useRef(null);
 
   // 初始化数据加载
   useEffect(() => {
@@ -85,7 +88,7 @@ const InitialSetupModal = () => {
       setStepComponents([]);
       return;
     }
-    
+
     const stepLabelMap = {
       Welcome: 'ようこそ',
       PersonalInfo: '個人情報',
@@ -98,7 +101,7 @@ const InitialSetupModal = () => {
       Welcome: <WelcomeStep />,
       PersonalInfo: <PersonalInfoStep ref={personalInfoRef} />,
       CompanyInfo: <CompanyInfoStep ref={companyInfoRef} />,
-      ApplicationInfo: <ApplicationStep />,
+      ApplicationInfo: <ApplicationInfoStep ref={applicationInfoRef}/>,
       Completion: <CompletionStep ref={completionRef} />,
     };
 
@@ -127,9 +130,28 @@ const InitialSetupModal = () => {
       if (!success) return;
     }
 
+    if (steps[currentStep] === 'ApplicationInfo' && applicationInfoRef.current) {
+      const success = await applicationInfoRef.current.saveApplication();
+      if (!success) return;
+    }
+
     if (steps[currentStep] === 'Completion' && completionRef.current) {
-      dispatch({ type: 'initialSetup/hideModal' });
-      return;
+      try {
+        // 获取最新的 userInfo
+        const userInfo = await dispatch(fetchUserInfo(userId)).unwrap();
+        
+        // 根据 applicationStatus 执行后续操作
+        if (userInfo.applicationStatus === 'approved') {
+          // 如果已批准，则关闭模态框
+          dispatch({ type: 'initialSetup/hideModal' });
+        } else {
+          handleLogout();
+        }
+        return;
+      } catch (error) {
+        console.error('Error fetching user info during completion:', error);
+        return;
+      }
     }
 
     if (currentStep < steps.length - 1) {

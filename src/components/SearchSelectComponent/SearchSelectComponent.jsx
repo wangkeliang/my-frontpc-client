@@ -2,58 +2,114 @@ import React, { useState, useEffect } from 'react';
 import '@salesforce-ux/design-system/assets/styles/salesforce-lightning-design-system.min.css';
 import styles from './SearchSelectComponent.module.css';
 
-const SearchSelectComponent = ({ selecteditem, title, sourcelist = [],onSelect  }) => {
+const SearchSelectComponent = ({
+  selecteditemid,
+  textDisplayField,
+  tableTitle,
+  searchColum,
+  sourcelist = [],
+  onSelect,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [searchResults, setSearchResults] = useState(sourcelist);
+  const [innerSourceList, setInnerSourceList] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [displayValue, setDisplayValue] = useState('');
+
+  // 拖动相关状态
   const [dragging, setDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({
+    x: (window.innerWidth - window.innerWidth * 0.8) / 2,
+    y: (window.innerHeight - window.innerHeight * 0.8) / 2,
+  });
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    console.log('***sourcelist=',sourcelist);
-    setSearchResults(sourcelist || []); // 当 sourcelist 发生变化时更新搜索结果
-  }, [sourcelist]);
+    const formatInnerSourceList = sourcelist.map((item) => {
+      const formattedItem = {
+        id: item.id,
+        displayValue: textDisplayField.map((field) => item[field]).join(' '),
+        searchValue: (tableTitle[searchColum] || [])
+          .map((field) => item[field] || '')
+          .join(' ')
+          .toLowerCase(),
+      };
 
-  useEffect(() => {
-    if (selecteditem?.value) {
-      setSearchValue(selecteditem.value); // 设置默认的搜索值
+      Object.keys(tableTitle).forEach((key) => {
+        formattedItem[key] = (tableTitle[key] || [])
+          .map((field) => item[field] || '')
+          .join(' ');
+      });
+
+      return formattedItem;
+    });
+
+    setInnerSourceList(formatInnerSourceList);
+
+    if (selecteditemid) {
+      const selected = formatInnerSourceList.find(
+        (item) => String(item.id) === String(selecteditemid)
+      );
+      if (selected) {
+        setDisplayValue(selected.displayValue);
+        setSearchResults([selected]);
+      } else {
+        setSearchResults(formatInnerSourceList);
+      }
+    } else {
+      setSearchResults(formatInnerSourceList);
     }
-  }, [selecteditem]);
+  }, [selecteditemid, sourcelist, textDisplayField, tableTitle, searchColum]);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
-
-    // 使弹出窗口居中
-    setPosition({
-      x: (window.innerWidth - window.innerWidth * 0.8) / 2,
-      y: (window.innerHeight - window.innerHeight * 0.9) / 2,
-    });
-
-    if (selecteditem?.value) {
-      setSearchValue(selecteditem.value);
-      handleSearchChange({ target: { value: selecteditem.value } });
+  
+    if (selecteditemid && innerSourceList.length > 0) {
+      const selectedItem = innerSourceList.find(
+        (item) => item.id === selecteditemid
+      );
+      if (selectedItem) {
+        setSearchValue(selectedItem[searchColum] || ''); // 设置搜索框值
+  
+        // 将选中的记录插入搜索结果中
+        const updatedResults = innerSourceList.filter((item) =>
+          item.searchValue.includes(selectedItem.searchValue)
+        );
+  
+        setSearchResults(updatedResults);
+  
+        // 确保当前页包含选中的记录
+        const selectedIndex = updatedResults.findIndex(
+          (item) => item.id === selecteditemid
+        );
+        if (selectedIndex !== -1) {
+          setCurrentPage(Math.floor(selectedIndex / itemsPerPage) + 1);
+        }
+      } else {
+        setSearchValue('');
+        setSearchResults(innerSourceList);
+      }
     } else {
-      setSearchResults(sourcelist); // 如果没有搜索值，显示所有结果
+      setSearchValue('');
+      setSearchResults(innerSourceList);
+      setCurrentPage(1); // 默认回到第一页
     }
   };
+  
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
 
   const handleSearchChange = (e) => {
-    const value = e.target.value;
+    const value = e.target.value.toLowerCase();
     setSearchValue(value);
 
-    // 过滤结果
-    const filteredResults = value
-      ? sourcelist.filter((item) =>
-          item.value.some((val) => val.includes(value))
-        )
-      : sourcelist; // 如果没有输入内容，显示所有结果
+    const filteredResults = innerSourceList.filter((item) =>
+      item.searchValue.includes(value)
+    );
 
     setSearchResults(filteredResults);
     setCurrentPage(1);
@@ -61,13 +117,8 @@ const SearchSelectComponent = ({ selecteditem, title, sourcelist = [],onSelect  
 
   const handleSelectItem = (item) => {
     if (onSelect) {
-      console.log('**onSelect is called');
-      onSelect({
-        key: item.key,
-        value: item.value, // 假设输入框需要显示第一列值
-      });
-    } else {
-      console.warn('onSelect callback is not provided');
+      onSelect(item);
+      setDisplayValue(item.displayValue);
     }
     handleCloseModal();
   };
@@ -85,7 +136,8 @@ const SearchSelectComponent = ({ selecteditem, title, sourcelist = [],onSelect  
     pageNumbers.push(i);
   }
 
-  const onMouseDown = (e) => {
+  // 拖动功能实现
+  const handleMouseDown = (e) => {
     setDragging(true);
     setOffset({
       x: e.clientX - position.x,
@@ -93,7 +145,7 @@ const SearchSelectComponent = ({ selecteditem, title, sourcelist = [],onSelect  
     });
   };
 
-  const onMouseMove = (e) => {
+  const handleMouseMove = (e) => {
     if (dragging) {
       setPosition({
         x: e.clientX - offset.x,
@@ -102,10 +154,9 @@ const SearchSelectComponent = ({ selecteditem, title, sourcelist = [],onSelect  
     }
   };
 
-  const onMouseUp = () => {
+  const handleMouseUp = () => {
     setDragging(false);
   };
-
 
   return (
     <div className={styles.searchSelectContainer}>
@@ -114,14 +165,16 @@ const SearchSelectComponent = ({ selecteditem, title, sourcelist = [],onSelect  
           <input
             type="text"
             className={`${styles.searchInput} slds-input`}
-            value={selecteditem?.value || ''} // 显示 selecteditem.value
+            value={displayValue}
             readOnly
             onClick={handleOpenModal}
             placeholder="検索..."
           />
           <span className={`${styles.searchIcon}`}>
-            {/* 使用 Salesforce 的放大镜图标 */}
-            <svg className="slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true">
+            <svg
+              className="slds-icon slds-icon_x-small slds-icon-text-default"
+              aria-hidden="true"
+            >
               <use xlinkHref="/assets/icons/utility-sprite/svg/symbols.svg#search"></use>
             </svg>
           </span>
@@ -129,122 +182,108 @@ const SearchSelectComponent = ({ selecteditem, title, sourcelist = [],onSelect  
       </div>
 
       {isModalOpen && (
-        <>
-          <section
-            role="dialog"
-            tabIndex="-1"
-            className="slds-modal slds-fade-in-open"
-            aria-labelledby="modal-heading-01"
-            aria-describedby="modal-content-id-1"
-            style={{
-              position: 'fixed',
-              left: `${position.x}px`,
-              top: `${position.y}px`,
-              width: '80%',
-              height: '90%',
-              overflow: 'hidden',
-              zIndex: 1000,
-            }}
-            onMouseMove={onMouseMove}
-            onMouseUp={onMouseUp}
-          >
-            <div className="slds-modal__container">
-              <header
-                className="slds-modal__header"
-                onMouseDown={onMouseDown}
-                onMouseUp={onMouseUp}
-                style={{ cursor: 'move' }}
+        <section
+          role="dialog"
+          tabIndex="-1"
+          style={{
+            position: 'fixed',
+            left: `${position.x}px`,
+            top: `${position.y}px`,
+            width: '80%',
+            height: '80%',
+            overflow: 'hidden',
+            zIndex: 1000,
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+        >
+          <div className="slds-modal__container">
+            <header
+              className="slds-modal__header"
+              onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              style={{ 
+                cursor: 'move',
+               }}
+            >
+              <button
+                className="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                onClick={handleCloseModal}
               >
-                <button
-                  className="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
-                  title="閉じる"
-                  onClick={handleCloseModal}
+                <svg
+                  className="slds-button__icon slds-button__icon_large"
+                  aria-hidden="true"
                 >
-                  <svg className="slds-button__icon slds-button__icon_large" aria-hidden="true">
-                    <use xlinkHref="/assets/icons/utility-sprite/svg/symbols.svg#close"></use>
-                  </svg>
-                  <span className="slds-assistive-text">閉じる</span>
-                </button>
-                <h2 className="slds-text-heading_medium" id="modal-heading-01">
-                  選択項目
-                </h2>
-              </header>
-              <div
-                className="slds-modal__content slds-p-around_medium"
-                id="modal-content-id-1"
-                style={{ maxHeight: '100%', overflowY: 'auto' }}
-              >
-                <label className="slds-form-element__label" htmlFor="search-input">
-                  検索
-                </label>
-                <input
-                  type="text"
-                  id="search-input"
-                  className="slds-input"
-                  value={searchValue}
-                  onChange={handleSearchChange}
-                  placeholder="検索..."
-                  style={{ fontSize: '0.9rem', marginBottom: '10px' }}
-                />
-                <div style={{ marginBottom: '10px', fontSize: '0.85rem' }}>
-                  表示件数：{searchResults.length} 件
-                </div>
-                <div style={{ marginTop: '10px' }}>
-                  <table className="slds-table slds-table_cell-buffer slds-table_bordered">
-                    <thead>
-                      <tr>
-                        {title.map((header, index) => (
-                          <th key={index} scope="col">
-                            <div className="slds-truncate" title={header} style={{ fontSize: '0.85rem' }}>
-                              {header}
-                            </div>
-                          </th>
+                  <use xlinkHref="/assets/icons/utility-sprite/svg/symbols.svg#close"></use>
+                </svg>
+                <span className="slds-assistive-text">閉じる</span>
+              </button>
+              <h2 className="slds-text-heading_medium">選択項目</h2>
+            </header>
+            <div className="slds-modal__content slds-p-around_medium">
+              <label className="slds-form-element__label" htmlFor="search-input">
+                検索
+              </label>
+              <input
+                type="text"
+                id="search-input"
+                className="slds-input"
+                value={searchValue}
+                onChange={handleSearchChange}
+                placeholder="検索..."
+                style={{ fontSize: '0.9rem', marginBottom: '10px' }}
+              />
+              <div style={{ marginBottom: '10px', fontSize: '0.85rem' }}>
+                表示件数：{searchResults.length} 件
+              </div>
+              <div style={{ 
+                marginTop: '10px',
+                }}>
+                <table className="slds-table slds-table_cell-buffer slds-table_bordered">
+                  <thead>
+                    <tr>
+                      {Object.keys(tableTitle).map((key, index) => (
+                        <th key={index}>{key}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentItems.map((item) => (
+                      <tr
+                        key={item.id}
+                        onClick={() => handleSelectItem(item)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {Object.keys(tableTitle).map((key, index) => (
+                          <td key={index}>{item[key]}</td>
                         ))}
                       </tr>
-                    </thead>
-                    <tbody>
-                      {currentItems.map((item, index) => (
-                        <tr
-                          key={index}
-                          onClick={() => handleSelectItem(item)}
-                          style={{ cursor: 'pointer', fontSize: '0.85rem' }}
-                        >
-                          {item.value.map((val, i) => (
-                            <td key={i} data-label={title[i]}>
-                              <div className="slds-truncate" title={val}>
-                                {val}
-                              </div>
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {pageNumbers.length > 1 && (
-                  <div className="slds-m-top_medium">
-                    {pageNumbers.map((number) => (
-                      <button
-                        key={number}
-                        className={`slds-button slds-button_neutral ${currentPage === number ? 'slds-is-selected slds-button_brand' : ''}`}
-                        onClick={() => handlePageChange(number)}
-                        style={{ margin: '2px', padding: '5px 10px', fontSize: '0.85rem' }}
-                      >
-                        {number}
-                      </button>
                     ))}
-                  </div>
-                )}
+                  </tbody>
+                </table>
               </div>
-              <footer className="slds-modal__footer">
-                <button className="slds-button slds-button_neutral" onClick={handleCloseModal}>
-                  閉じる
-                </button>
-              </footer>
+              {searchResults.length > itemsPerPage && (
+                <div className={styles.pagination}>
+                  {pageNumbers.map((number) => (
+                    <a
+                      key={number}
+                      onClick={() => handlePageChange(number)}
+                      className={currentPage === number ? styles.active : ''}
+                      style={{
+                        cursor: 'pointer',
+                        margin: '0 5px',
+                        textDecoration: 'underline',
+                        color: currentPage === number ? 'black' : 'blue',
+                      }}
+                    >
+                      {number}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
-          </section>
-          <div className="slds-backdrop slds-backdrop_open" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }}></div>
-        </>
+          </div>
+        </section>
       )}
     </div>
   );

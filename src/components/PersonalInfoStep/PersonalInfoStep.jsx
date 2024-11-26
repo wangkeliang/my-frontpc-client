@@ -24,6 +24,7 @@ const PersonalInfoStep = forwardRef((props, ref) => {
   const [availableRoles, setAvailableRoles] = useState([]); // 可用角色列表
   const [errors, setErrors] = useState({}); // 错误状态
   const [errorMessage, setErrorMessage] = useState(''); // 错误信息
+  // const [selectManagerId, setSelectManagerId] = useState('');
   
 
   // --- Redux 数据获取 ---
@@ -47,8 +48,9 @@ const PersonalInfoStep = forwardRef((props, ref) => {
         email: userInfo.email || '',
         phoneNumber: userInfo.phoneNumber || '',
         department: userInfo.department || '',
-        managerId: managerInfo?.id || '',
+        managerId: userInfo.managerId || '',
       });
+      // setSelectManagerId(userInfo?.managerId || ''); // 初始化 selectManagerId
     }
 
     // 初始化选中角色和可用角色
@@ -96,9 +98,10 @@ const PersonalInfoStep = forwardRef((props, ref) => {
 
   const handleSelect = (selected) => {
     console.log('**handleSelect Selected item:', selected);
+    // setSelectManagerId(selected.id); // 更新选中的 Manager ID
     setFields((prevFields) => ({
       ...prevFields,
-      managerId: selected.key, // 更新选中的 Manager ID
+      managerId: selected.id,
     }));
   };
 
@@ -127,16 +130,12 @@ const PersonalInfoStep = forwardRef((props, ref) => {
   };
 
   // --- 格式化数据 ---
-  const managerTitle = ['姓名', 'メール', '部署'];
-  const formattedCompanyMembers = companyMembers.map((member) => ({
-    key: member.id,
-    value: [
-      `${member.firstName} ${member.lastName}`, // 第一列，显示姓名
-      member.email, // 第二列，显示邮箱
-      member.department, // 第三列，显示部门
-    ],
-  }));
-  console.log('***formattedCompanyMembers',formattedCompanyMembers);
+  const tableDisplayFormat = {
+    お名前: ['firstName', 'lastName'],
+    メール: ['email'],
+    部署: ['department'],
+  };
+
 
   // --- 校验逻辑 ---
   const validateFields = () => {
@@ -203,7 +202,7 @@ const PersonalInfoStep = forwardRef((props, ref) => {
       lastNameKana: fields.lastNameKana,
       phoneNumber: fields.phoneNumber,
       department: fields.department,
-      managerId: fields.managerId,
+      managerId: fields.managerId, 
     };
 
     const hasFieldChanges = Object.keys(updatedFields).some((key) => {
@@ -261,7 +260,8 @@ const PersonalInfoStep = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({
     saveChanges,
   }));
-
+console.log('*companyMembers=',companyMembers);
+console.log('fields',fields);
   return (
     <div className={styles.personalInfoStep}>
       {/* 错误消息显示区域 */}
@@ -384,20 +384,11 @@ const PersonalInfoStep = forwardRef((props, ref) => {
         <div className={styles.personalFormGroup}>
           <label htmlFor="manager" className={styles.personalLabel}>マネージャー:</label>
           <SearchSelectComponent
-            selecteditem={
-              managerInfo
-                ? {
-                    key: managerInfo.id,
-                    value: [
-                      `${managerInfo.firstName} ${managerInfo.lastName}`,
-                      managerInfo.email,
-                      managerInfo.department,
-                    ],
-                  }
-                : null
-            }
-            title={managerTitle}
-            sourcelist={formattedCompanyMembers || []}
+            selecteditemid='101'//{fields.managerId}
+            textDisplayField={['firstName', 'lastName']}
+            tableTitle={tableDisplayFormat}
+            searchColum="お名前"
+            sourcelist={companyMembers || []}
             onSelect={handleSelect}
           />
         </div>

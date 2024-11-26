@@ -1,60 +1,59 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SearchSelectComponent from '../SearchSelectComponent/SearchSelectComponent';
-import PostalCodeInput from '../PostalCodeInput/PostalCodeInput';
-const WelcomeStep = () => {
-  const selecteditem = { key: '', value: [] };
-  const title = ["Title 1", "Title 2", "Title 3", "Title 4", "Title 5"];
-  const sourcelist = [
-    { key: 1, value: ["abcd", "営業担当", "人事", "技術部", "総務"] },
-    { key: 2, value: ["efg", "営業担当", "人事", "技術部", "総務"] },
-    { key: 3, value: ["hij", "営業担当", "人事", "技術部", "総務"] },
-    { key: 4, value: ["klm", "営業担当", "人事", "技術部", "総務"] },
-    { key: 5, value: ["nop", "営業担当", "人事", "技術部", "総務"] },
-    { key: 6, value: ["qrs", "営業担当", "人事", "技術部", "総務"] },
-    { key: 7, value: ["tuv", "営業担当", "人事", "技術部", "総務"] },
-    { key: 8, value: ["wxy", "営業担当", "人事", "技術部", "総務"] },
-    { key: 9, value: ["zab", "営業担当", "人事", "技術部", "総務"] },
-    { key: 10, value: ["cde", "営業担当", "人事", "技術部", "総務"] },
-    { key: 11, value: ["fgh", "営業担当", "人事", "技術部", "総務"] },
-    { key: 12, value: ["ijk", "営業担当", "人事", "技術部", "総務"] },
-    { key: 13, value: ["lmn", "営業担当", "人事", "技術部", "総務"] },
-    { key: 14, value: ["opq", "営業担当", "人事", "技術部", "総務"] },
-    { key: 15, value: ["rst", "営業担当", "人事", "技術部", "総務"] },
-    { key: 16, value: ["uvw", "営業担当", "人事", "技術部", "総務"] },
-    { key: 17, value: ["xyz", "営業担当", "人事", "技術部", "総務"] },
-    { key: 18, value: ["abc", "営業担当", "人事", "技術部", "総務"] },
-    { key: 19, value: ["def", "営業担当", "人事", "技術部", "総務"] },
-    { key: 20, value: ["ghi", "営業担当", "人事", "技術部", "総務"] },
-    { key: 21, value: ["jkl", "営業担当", "人事", "技術部", "総務"] },
-    { key: 22, value: ["mno", "営業担当", "人事", "技術部", "総務"] },
-    { key: 23, value: ["pqr", "営業担当", "人事", "技術部", "総務"] },
-    { key: 24, value: ["stu", "営業担当", "人事", "技術部", "総務"] },
-    { key: 25, value: ["vwx", "営業担当", "人事", "技術部", "総務"] },
-    { key: 26, value: ["yza", "営業担当", "人事", "技術部", "総務"] },
-    { key: 27, value: ["bcd", "営業担当", "人事", "技術部", "総務"] },
-    { key: 28, value: ["efg", "営業担当", "人事", "技術部", "総務"] },
-    { key: 29, value: ["hij", "営業担当", "人事", "技術部", "総務"] },
-    { key: 30, value: ["klm", "営業担当", "人事", "技術部", "総務"] }
-  ];
-  const [postalCode, setPostalCode] = useState('');
 
-  const handlePostalCodeChange = (e) => {
-    setPostalCode(e.target.value);
+const WelcomeStep = () => {
+  const [managerId, setManagerId] = useState(null); // 用于存储选中的 Manager ID
+  const [companyMembers, setCompanyMembers] = useState([]); // 用于存储公司成员数据
+
+  // 模拟从 API 获取初始数据
+  useEffect(() => {
+    const fetchData = async () => {
+      // 模拟异步获取数据
+      const mockCompanyMembers = [
+        { id: '123', firstName: '田中', lastName: '太郎', email: 'tanaka@example.com', department: '営業' },
+        { id: '456', firstName: '鈴木', lastName: '花子', email: 'suzuki@example.com', department: '開発' },
+        { id: '1', firstName: '鈴木1', lastName: '花子', email: 'suzuki@example.com', department: '開発' },
+        { id: '2', firstName: '鈴木2', lastName: '花子', email: 'suzuki@example.com', department: '開発' },
+        { id: '3', firstName: '鈴木3', lastName: '花子', email: 'suzuki@example.com', department: '開発' },
+        { id: '4', firstName: '鈴木4', lastName: '花子', email: 'suzuki@example.com', department: '開発' },
+        { id: '5', firstName: '鈴木5', lastName: '花子', email: 'suzuki@example.com', department: '開発' },
+        { id: '6', firstName: '鈴木6', lastName: '花子', email: 'suzuki@example.com', department: '開発' },
+      ];
+
+      setCompanyMembers(mockCompanyMembers); // 设置公司成员数据
+      setManagerId('123'); // 默认选中 ID 为 '123'
+    };
+
+    fetchData();
+  }, []);
+
+  // 处理选中项更新的回调
+  const handleSelect = (selectedItem) => {
+    console.log('Selected Item:', selectedItem);
+    setManagerId(selectedItem.id); // 更新选中的 Manager ID
   };
 
   return (
     <div>
-      <h2>Welcome Setup</h2>
-      <SearchSelectComponent selecteditem={selecteditem} title={title} sourcelist={sourcelist} />
-
-      <div>
-      <PostalCodeInput value={postalCode} onChange={handlePostalCodeChange} />
-      <p>入力された郵便番号: {postalCode}</p>
+      <h2>ようこそ</h2>
+      <div style={{ marginTop: '20px' }}>
+        <label style={{ display: 'block', marginBottom: '10px' }}>
+          マネージャーを選択してください:
+        </label>
+        <SearchSelectComponent
+          selecteditemid={managerId} // 当前选中的 Manager ID
+          textDisplayField={['firstName', 'lastName']} // 在输入框中显示的字段
+          tableTitle={{
+            お名前: ['firstName', 'lastName'],
+            メール: ['email'],
+            部署: ['department'],
+          }} // 表头和对应字段映射
+          searchColum="お名前" // 搜索列名，匹配指定列
+          sourcelist={companyMembers} // 数据源
+          onSelect={handleSelect} // 选中后的回调函数
+        />
+      </div>
     </div>
-
-    </div>
-    
   );
 };
 

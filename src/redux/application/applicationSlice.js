@@ -12,13 +12,11 @@ export const fetchApplications = createAsyncThunk(
     return new Promise((resolve, reject) => {
       apiHandler(
         authApi,
-        `/application/applications?applicantId=${applicantId}`,
+        `/application/list?applicantId=${applicantId}`,
         null,
-        // 成功回调
+        'GET',
         (responseData) => resolve(responseData),
-        // 失败回调
         ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
         ({ errorMessage }) => reject(rejectWithValue(errorMessage))
       );
     });
@@ -35,13 +33,11 @@ export const addApplication = createAsyncThunk(
     return new Promise((resolve, reject) => {
       apiHandler(
         authApi,
-        `/application/applications/add`,
+        '/application/add',
         applicationData,
-        // 成功回调
+        'POST',
         (responseData) => resolve(responseData),
-        // 失败回调
         ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
         ({ errorMessage }) => reject(rejectWithValue(errorMessage))
       );
     });
@@ -58,13 +54,11 @@ export const updateApplication = createAsyncThunk(
     return new Promise((resolve, reject) => {
       apiHandler(
         authApi,
-        `/application/applications/update`,
+        '/application/update',
         applicationData,
-        // 成功回调
+        'POST',
         (responseData) => resolve(responseData),
-        // 失败回调
         ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
         ({ errorMessage }) => reject(rejectWithValue(errorMessage))
       );
     });
@@ -96,7 +90,7 @@ const applicationSlice = createSlice({
       })
       .addCase(fetchApplications.fulfilled, (state, action) => {
         state.isLoading = false; // 加载完成
-        state.applications = action.payload.data; // 保存获取的申请信息
+        state.applications = action.payload; // 保存获取的申请信息
       })
       .addCase(fetchApplications.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
@@ -109,7 +103,7 @@ const applicationSlice = createSlice({
       })
       .addCase(addApplication.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.applications.push(action.payload.data); // 添加新的申请信息
+        state.applications.push(action.payload); // 添加新的申请信息
       })
       .addCase(addApplication.rejected, (state, action) => {
         state.isLoading = false;
@@ -122,7 +116,7 @@ const applicationSlice = createSlice({
       })
       .addCase(updateApplication.fulfilled, (state, action) => {
         state.isLoading = false;
-        const updatedApplication = action.payload.data;
+        const updatedApplication = action.payload;
         const index = state.applications.findIndex((app) => app.id === updatedApplication.id);
         if (index !== -1) {
           state.applications[index] = updatedApplication; // 更新申请信息

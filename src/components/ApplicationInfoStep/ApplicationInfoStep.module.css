@@ -1,0 +1,19 @@
+.applicationStep {
+    max-width: 80%; /* 调整宽度为当前宽度的 1/2 */
+    margin: 0 auto; /* 居中 */
+    padding: 20px;
+
+    border-radius: 8px;
+  
+  }
+  
+  .autocompleteContainer {
+    max-width: 100%; /* 自动适应外层宽度 */
+  }
+  
+  .errorMessage {
+    color: red;
+    margin-top: 10px;
+    font-size: 0.85rem;
+  }
+  

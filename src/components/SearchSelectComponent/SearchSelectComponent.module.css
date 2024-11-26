@@ -29,4 +29,9 @@
     outline: none;
     border-color: #6b6e74;
   }
-  
+  .customModalBackground {
+    background-color: #050606; /* 专业淡灰色背景 */
+    border: 1px solid #0e409d; /* 增加边框以便更清晰地区分 */
+    border-radius: 8px; /* 增加圆角 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 增加阴影提升视觉效果 */
+  }
