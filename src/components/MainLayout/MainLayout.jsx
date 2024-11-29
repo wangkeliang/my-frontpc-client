@@ -6,20 +6,24 @@ import ContentArea from '../ContentArea/ContentArea';
 import Footer from '../Footer/Footer';
 import InitialSetupModal from '../InitialSetupModal/InitialSetupModal'; // 引入初始化设置组件
 import './MainLayout.css';
-
+import { useSelector } from 'react-redux';
 const MainLayout = () => {
   const [activeTab, setActiveTab] = useState('Home'); // 设置默认标签
   const [showInitialSetup, setShowInitialSetup] = useState(false); // 控制初始化设置模态窗口的显示
-
+  const { userId,webSocketSuccess } = useSelector((state) => state.auth);
+  const { permissionSuccess } = useSelector((state) => state.permissions);
   useEffect(() => {
     // 设置一个定时器，在 4 秒后显示初始化设置模态窗口
-    const timer = setTimeout(() => {
-      setShowInitialSetup(true);
-    }, 1000);
-
-    // 清除定时器
-    return () => clearTimeout(timer);
-  }, []);
+    if (userId && webSocketSuccess && permissionSuccess) {
+      const timer = setTimeout(() => {
+        setShowInitialSetup(true);
+      }, 200);
+  
+      // 清除定时器
+      return () => clearTimeout(timer);
+    }
+    
+  }, [userId,webSocketSuccess,permissionSuccess]);
 
   return (
     <div className="main-layout">

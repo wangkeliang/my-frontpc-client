@@ -1,6 +1,6 @@
 // src/services/webSocketClient.js
 import store from '../redux/store'; // 导入 Redux store
-
+import { setWebSocketSuccess } from '../redux/auth/authSlice'; // 导入 action
 let webSocketInstance = null; // 全局的 WebSocketClient 实例
 
 class WebSocketClient {
@@ -32,6 +32,7 @@ class WebSocketClient {
   }
 
   handleOpen = () => {
+    store.dispatch(setWebSocketSuccess(true)); // 更新 Redux 状态为成功
     console.log('WebSocket 连接已打开');
   };
 
@@ -56,10 +57,12 @@ class WebSocketClient {
   };
 
   handleClose = () => {
+    store.dispatch(setWebSocketSuccess(false)); // 更新 Redux 状态为关闭
     console.log('WebSocket 连接已关闭');
   };
 
   handleError = (error) => {
+    store.dispatch(setWebSocketSuccess(false)); // 更新 Redux 状态为错误
     console.error('WebSocket 错误:', error);
   };
 

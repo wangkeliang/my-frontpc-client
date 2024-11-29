@@ -98,8 +98,19 @@ export function handleLogin(dispatch, email, password, setLocalError) {
   dispatch(loginUser({ email, password }))
   .unwrap() // 使用 unwrap() 来处理异步操作的结果
   .then((actionPayload) => {
-    const webSocketClient = new WebSocketClient();
-    webSocketClient.connect();
+
+    // 调用 fetchUserPermissions
+    dispatch(fetchUserPermissions())
+    .unwrap()
+    .then((permissions) => {
+      console.log('用户权限获取成功:', permissions);
+      const webSocketClient = new WebSocketClient();
+      webSocketClient.connect();
+    })
+    .catch((error) => {
+      console.error('用户权限获取失败:', error);
+      setLocalError(error);
+    });
   })
   .catch((error) => {
     // 处理登录失败的情况

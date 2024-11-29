@@ -47,7 +47,7 @@ export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async (_, { getState, rejectWithValue }) => {
     const { userId, deviceId } = getState().auth;
-
+    console.log('★★getState().auth=',getState().auth);
     return new Promise((resolve, reject) => {
       apiHandler(
         authApi,
@@ -65,6 +65,7 @@ export const logoutUser = createAsyncThunk(
         },
         // 失败回调
         ({ errorMessage }) => {
+          alert(errorMessage);
 
           localStorage.removeItem('token');
           localStorage.removeItem('deviceId');
@@ -75,7 +76,7 @@ export const logoutUser = createAsyncThunk(
         },
         // 错误回调
         ({ errorMessage }) => {
-
+          alert(errorMessage);
           localStorage.removeItem('token');
           localStorage.removeItem('deviceId');
           localStorage.removeItem('companyId');
@@ -97,13 +98,17 @@ const authSlice = createSlice({
     deviceId: null,
     domain:null,
     companyId:null,
-    apikey:null,
+    apikey:null,    
+    webSocketSuccess:false,
     loading: false,
     error: null,
   },
   reducers: {
     clearError: (state) => {
       state.error = null;
+    },
+    setWebSocketSuccess: (state, action) => { // 新增 reducer
+      state.webSocketSuccess = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -156,5 +161,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError,setWebSocketSuccess } = authSlice.actions;
 export default authSlice.reducer;

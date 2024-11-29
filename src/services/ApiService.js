@@ -11,8 +11,9 @@ const authApi = axios.create({
 // 请求拦截器：添加 Authorization 头和 deviceId
 authApi.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    const deviceId = localStorage.getItem('deviceId');
+    const state = store.getState(); // 从 Redux store 获取状态
+    const { token, deviceId } = state.auth; // 从 auth 状态中获取 token 和 deviceId
+
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }

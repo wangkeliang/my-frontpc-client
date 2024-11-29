@@ -31,12 +31,13 @@ export function useUserMenu() {
 
   // Handle user logout
   const handleLogout = () => {
-    // 关闭 WebSocket 连接
-    const webSocketClient = new WebSocketClient();
-    webSocketClient.close();
+
 
     dispatch(logoutUser()).then(() => {
-      navigate('/login'); // Navigate to the login page on successful logout
+      // navigate('/login'); // Navigate to the login page on successful logout
+          // 关闭 WebSocket 连接
+      const webSocketClient = new WebSocketClient();
+      webSocketClient.close();
     });
   };
 

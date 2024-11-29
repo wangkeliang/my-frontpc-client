@@ -8,14 +8,18 @@ import './LoginPage.css';
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { userId } = useSelector((state) => state.auth);
+  const { userId,webSocketSuccess } = useSelector((state) => state.auth);
+  const { permissionSuccess } = useSelector((state) => state.permissions);
 
   useEffect(() => {
     // 当 user 存在时表示登录成功，跳转到 MainPage
-    if (userId) {
+    console.log('***userId=',userId);
+    console.log('***webSocketSuccess=',webSocketSuccess);
+    console.log('***permissionSuccess=',permissionSuccess);
+    if (userId && webSocketSuccess && permissionSuccess) {
       navigate('/main');
     }
-  }, [userId, navigate]);
+  }, [userId,webSocketSuccess,permissionSuccess, navigate]);
 
   return (
     <div className="login-page slds-grid slds-wrap">

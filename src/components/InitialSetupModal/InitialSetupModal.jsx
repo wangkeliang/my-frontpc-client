@@ -45,6 +45,9 @@ const InitialSetupModal = () => {
   useEffect(() => {
     const initializeSetupData = async () => {
       try {
+        if (!userId) {
+          return;
+        }
         console.log('*** Initial setup data loading starts ***');
         const initialSetupResponse = await dispatch(fetchInitialSetupData(userId)).unwrap();
         const userInfo = await dispatch(fetchUserInfo(userId)).unwrap();
@@ -139,13 +142,14 @@ const InitialSetupModal = () => {
       try {
         // 获取最新的 userInfo
         const userInfo = await dispatch(fetchUserInfo(userId)).unwrap();
-        
         // 根据 applicationStatus 执行后续操作
         if (userInfo.applicationStatus === 'approved') {
+          
           // 如果已批准，则关闭模态框
           dispatch({ type: 'initialSetup/hideModal' });
         } else {
           handleLogout();
+          // dispatch({ type: 'initialSetup/hideModal' });
         }
         return;
       } catch (error) {
