@@ -3,14 +3,15 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logoutUser } from '../redux/auth/authSlice'; // 引入 logoutUser action
 import { useRef, useEffect, useState } from 'react';
-import WebSocketClient from './webSocketClient'; // 导入 WebSocketClient
-
+import WebSocketClient from './WebSocketClient';
+import { useErrorBoundary } from "react-error-boundary";
 // Hook to manage user menu logic
 export function useUserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const menuRef = useRef(null);
+  const { showBoundary  } = useErrorBoundary();
 
   // 用户信息
   const user = {
@@ -32,13 +33,8 @@ export function useUserMenu() {
   // Handle user logout
   const handleLogout = () => {
 
-
-    dispatch(logoutUser()).then(() => {
-      // navigate('/login'); // Navigate to the login page on successful logout
-          // 关闭 WebSocket 连接
-      const webSocketClient = new WebSocketClient();
-      webSocketClient.close();
-    });
+    console.log('handleLogout is begin');
+    dispatch(logoutUser({ showBoundary  })).unwrap();
   };
 
   // Close the menu when clicking outside of it

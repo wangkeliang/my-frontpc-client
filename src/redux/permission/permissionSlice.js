@@ -31,6 +31,7 @@ const permissionSlice = createSlice({
   name: 'permissions',
   initialState: {
     permissioninfo: null, // 用户权限数据
+    refreshPermissionFlag:true,
     permissionSuccess:false,
     isLoading: false, // 加载状态
     error: null, // 错误信息
@@ -45,6 +46,9 @@ const permissionSlice = createSlice({
     },
     setPermissionSuccess: (state, action) => { // 新增 reducer
       state.permissioninfo = action.payload;
+    },
+    setRefreshPermissionFlag: (state, action) => { // 新增 reducer
+      state.refreshPermissionFlag = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -69,5 +73,5 @@ const permissionSlice = createSlice({
 });
 
 // 导出 actions 和 reducer
-export const { clearError,setPermissionSuccess} = permissionSlice.actions;
+export const { clearError,setPermissionSuccess,setRefreshPermissionFlag} = permissionSlice.actions;
 export default permissionSlice.reducer;

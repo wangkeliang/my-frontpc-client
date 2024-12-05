@@ -2,45 +2,50 @@
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { publicApi } from '../../services/ApiService';
-
+import { apiHandler } from '../../utils/apiHandler';
+/**
+ * 注册用户
+ */
 export const registerUser = createAsyncThunk(
   'register/registerUser',
-  async (userData, { rejectWithValue }) => {
-    try {
-      console.log('**registerUser is begin');
-      console.log(userData);
-      const response = await publicApi.post('/auth/register', userData);
-      console.log('response=',response);
-      if (response.data.status !== 'success') {
-        const errorMessage = response.data.error?.[0]?.errorMessage;
-        console.log(errorMessage);
-        return rejectWithValue(errorMessage);
-      }
-      return { ...response.data, email: userData.email }; // 返回 email 用于存储
-    } catch (error) {
-      if (error?.response?.data?.error) {
-        return rejectWithValue(error.response.data.error[0].errorMessage);
-      }
-      return rejectWithValue('登録に失敗しました。もう一度お試しください。');
-    }
+  (userData, { rejectWithValue }) => {
+    return new Promise((resolve, reject) => {
+      apiHandler(
+        publicApi,
+        '/auth/register',
+        userData,
+        'POST',
+        // 成功回调
+        (responseData) => resolve({ ...responseData, email: userData.email }),
+        // 失败回调
+        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
+        // 错误回调
+        ({ errorMessage }) => reject(rejectWithValue('登録に失敗しました。もう一度お試しください。'))
+      );
+    });
   }
 );
 
+/**
+ * 重新发送确认邮件
+ */
 export const resendConfirmationEmail = createAsyncThunk(
   'register/resendConfirmationEmail',
-  async (email, { rejectWithValue }) => {
-    try {
-      const response = await publicApi.post('/auth/resend-confirmation-email', { email });
-      if (response.data.status !== 'success') {
-        return rejectWithValue('メールの再送に失敗しました。');
-      }
-      return response.data;
-    } catch (error) {
-      if (error?.response?.data?.error) {
-        return rejectWithValue(error.response.data.error[0].errorMessage);
-      }
-      return rejectWithValue('メールの再送に失敗しました。');
-    }
+  (email, { rejectWithValue }) => {
+    return new Promise((resolve, reject) => {
+      apiHandler(
+        publicApi,
+        '/auth/resend-confirmation-email',
+        { email },
+        'POST',
+        // 成功回调
+        (responseData) => resolve(responseData),
+        // 失败回调
+        ({ errorMessage }) => reject(rejectWithValue(errorMessage || 'メールの再送に失敗しました。')),
+        // 错误回调
+        ({ errorMessage }) => reject(rejectWithValue('メールの再送に失敗しました。'))
+      );
+    });
   }
 );
 

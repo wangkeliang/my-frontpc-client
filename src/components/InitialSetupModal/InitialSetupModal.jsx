@@ -18,6 +18,7 @@ import {
   fetchCompanyAdmins
 } from '../../redux/company/companySlice';
 import { fetchRoleMaster } from '../../redux/master/masterSlice';
+import { fetchUserPermissions, setRefreshPermissionFlag } from '../../redux/permission/permissionSlice';
 import StepIndicator from '../StepIndicator/StepIndicator';
 import WelcomeStep from '../WelcomeStep/WelcomeStep';
 import CompanyInfoStep from '../CompanyInfoStep/CompanyInfoStep';
@@ -32,8 +33,9 @@ const InitialSetupModal = () => {
   const { handleLogout } = useUserMenu(); // 引用 handleLogout 方法
 
   // 从 Redux Store 中获取状态
-  const { currentStep, showModal, steps, error } = useSelector((state) => state.initialSetup);
+  const { currentStep, steps, error } = useSelector((state) => state.initialSetup);
   const userId = useSelector((state) => state.auth?.userId); // 从 auth 中获取 userId
+  const { webSocketSuccess } = useSelector((state) => state.auth);
 
   const [stepComponents, setStepComponents] = useState([]);
   const personalInfoRef = useRef(null); // 定义 ref，用于保存 PersonalInfoStep 的方法
@@ -41,51 +43,56 @@ const InitialSetupModal = () => {
   const completionRef = useRef(null);
   const applicationInfoRef = useRef(null);
 
-  // 初始化数据加载
+  // // 初始化数据加载
   useEffect(() => {
-    const initializeSetupData = async () => {
-      try {
-        if (!userId) {
-          return;
+    const initializeSetupData = async () => {  
+      // alert("子组件1: " +"userId: "+ userId + " webSocketSuccess:" + webSocketSuccess );
+      if (userId && webSocketSuccess) {
+        // alert("子组件2: " +"userId: "+ userId + " webSocketSuccess:" + webSocketSuccess );
+        try {
+          if (!userId) {
+            return;
+          }
+          console.log('*** Initial setup data loading starts ***');
+          const userInfo = await dispatch(fetchUserInfo(userId)).unwrap();
+
+          const fetchedCompanyId = userInfo.companyId;
+          const userType = userInfo.userType;
+
+          await dispatch(fetchManagerInfo(userId)).unwrap();
+          await dispatch(fetchUserRoles(userId)).unwrap();
+          await dispatch(fetchRoleApplications(userId)).unwrap();
+
+          if (fetchedCompanyId) {
+            await dispatch(fetchCompanyInfo(fetchedCompanyId)).unwrap();
+            await dispatch(fetchCompanyMembers(fetchedCompanyId)).unwrap();
+            await dispatch(fetchCompanyAdmins(fetchedCompanyId)).unwrap();
+          }
+
+          if (userType) {
+            await dispatch(fetchRoleMaster(userType)).unwrap();
+          }
+          console.log('*** Initial setup data loading completed ***');
+        } catch (error) {
+          console.error('Error during setup:', error);
         }
-        console.log('*** Initial setup data loading starts ***');
-        const initialSetupResponse = await dispatch(fetchInitialSetupData(userId)).unwrap();
-        const userInfo = await dispatch(fetchUserInfo(userId)).unwrap();
-
-        const fetchedCompanyId = userInfo.companyId;
-        const userType = userInfo.userType;
-
-        await dispatch(fetchManagerInfo(userId)).unwrap();
-        await dispatch(fetchUserRoles(userId)).unwrap();
-        await dispatch(fetchRoleApplications(userId)).unwrap();
-
-        if (fetchedCompanyId) {
-          await dispatch(fetchCompanyInfo(fetchedCompanyId)).unwrap();
-          await dispatch(fetchCompanyMembers(fetchedCompanyId)).unwrap();
-          await dispatch(fetchCompanyAdmins(fetchedCompanyId)).unwrap();
-        }
-
-        if (userType) {
-          await dispatch(fetchRoleMaster(userType)).unwrap();
-        }
-        console.log('*** Initial setup data loading completed ***');
-      } catch (error) {
-        console.error('Error during setup:', error);
       }
     };
 
     initializeSetupData();
-  }, [dispatch, userId]);
+  }, [dispatch, userId,webSocketSuccess]);
 
   // 错误导航处理
   useEffect(() => {
+    console.log('***initial setup modal error=',error);
     if (error) {
-      navigate('/error');
+      // navigate('/error');
     }
   }, [error, navigate]);
 
   // 获取步骤组件及其标签
   useEffect(() => {
+    console.log('**steps=',steps);
     if (!Array.isArray(steps) || steps.length === 0) {
       console.warn('Steps is not defined or empty.');
       setStepComponents([]);
@@ -118,9 +125,6 @@ const InitialSetupModal = () => {
     setStepComponents(components);
   }, [steps]);
 
-  if (!showModal) {
-    return null;
-  }
 
   const handleNextStep = async () => {
     if (steps[currentStep] === 'PersonalInfo' && personalInfoRef.current) {
@@ -145,8 +149,10 @@ const InitialSetupModal = () => {
         // 根据 applicationStatus 执行后续操作
         if (userInfo.applicationStatus === 'approved') {
           
+          dispatch(setRefreshPermissionFlag(true)); // 设置刷新标志为 true
           // 如果已批准，则关闭模态框
           dispatch({ type: 'initialSetup/hideModal' });
+          
         } else {
           handleLogout();
           // dispatch({ type: 'initialSetup/hideModal' });

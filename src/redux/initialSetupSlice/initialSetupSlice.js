@@ -1,18 +1,27 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authApi } from '../../services/ApiService';
+import { apiHandler } from '../../utils/apiHandler';
 
-
-// 异步操作：从后端获取用户和公司信息，使用 POST 方法
+/**
+ * 异步操作：从后端获取用户和公司信息，使用 POST 方法
+ */
 export const fetchInitialSetupData = createAsyncThunk(
   'initialSetup/fetchInitialSetupData',
-  async (requestData = {}, { rejectWithValue }) => {
-    try {
-      const response = await authApi.post('/init/initial-setup-data', requestData);
-      console.log('**initialSetup is called', response.data);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || 'Something went wrong');
-    }
+  (requestData = {}, { rejectWithValue }) => {
+    return new Promise((resolve, reject) => {
+      apiHandler(
+        authApi,
+        '/init/initial-setup-data',
+        requestData,
+        'POST',
+        // 成功回调
+        (responseData) => resolve(responseData),
+        // 失败回调
+        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
+        // 错误回调
+        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+      );
+    });
   }
 );
 
@@ -30,7 +39,7 @@ const initialSetupSlice = createSlice({
       state.currentStep = action.payload;
     },
     hideModal(state) {
-      state.showModal = false; // 隐藏模态窗口
+      state.showModal = false; // 隐藏模态窗口      
     },
   },
   extraReducers: (builder) => {
@@ -41,18 +50,10 @@ const initialSetupSlice = createSlice({
       })
       .addCase(fetchInitialSetupData.fulfilled, (state, action) => {
         state.isLoading = false;
-
-        // 检查返回的 status
-        if (action.payload.status === 'success') {
-          const { currentStep, showModal, steps } = action.payload.data;
-          state.currentStep = currentStep;
-          state.showModal = showModal;
-          state.steps = steps;
-        } else {
-            state.isLoading = false;
-            state.error = action.payload.error.message || 'Something went wrong';      
-        }
-        // 调试日志
+        state.currentStep = action.payload.currentStep;
+        state.showModal = action.payload.showModal;          
+        state.steps = action.payload.steps; 
+        
         console.log('Fetched data:', action.payload);
       })
       .addCase(fetchInitialSetupData.rejected, (state, action) => {

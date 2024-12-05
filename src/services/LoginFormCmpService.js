@@ -1,11 +1,14 @@
 // src/services/LoginFormCmpService.js
 
-import { loginUser, clearError } from '../redux/auth/authSlice';
+import { loginUser, clearError,logoutUser } from '../redux/auth/authSlice';
 import { validateEmailFormat } from '../utils/Common'; // 引入通用的邮箱验证方法
-import { fetchUserPermissions } from '../redux/permission/permissionSlice'; // Import fetchUserPermissions
-import WebSocketClient from './webSocketClient'; // 导入 WebSocketClient
+import store from '../redux/store'; // 引入 Redux store
 
 export function initLoginForm(setEmail, setPassword, setRememberMe) {
+  //  清空登录状态
+    store.dispatch({ type: 'root/clearAllStates' });
+
+
     const { savedEmail, savedPassword, rememberMe } = loadSavedCredentials();
     if (rememberMe) {
       setEmail(savedEmail);
@@ -98,19 +101,18 @@ export function handleLogin(dispatch, email, password, setLocalError) {
   dispatch(loginUser({ email, password }))
   .unwrap() // 使用 unwrap() 来处理异步操作的结果
   .then((actionPayload) => {
-
+   console.log('***before call fetchUserPermissions ');
     // 调用 fetchUserPermissions
-    dispatch(fetchUserPermissions())
-    .unwrap()
-    .then((permissions) => {
-      console.log('用户权限获取成功:', permissions);
-      const webSocketClient = new WebSocketClient();
-      webSocketClient.connect();
-    })
-    .catch((error) => {
-      console.error('用户权限获取失败:', error);
-      setLocalError(error);
-    });
+    // dispatch(fetchUserPermissions())
+    // .unwrap()
+    // .then((permissions) => {
+    //   console.log('用户权限获取成功:', permissions);
+ 
+    // })
+    // .catch((error) => {
+    //   console.error('用户权限获取失败:', error);
+    //   setLocalError(error);
+    // });
   })
   .catch((error) => {
     // 处理登录失败的情况

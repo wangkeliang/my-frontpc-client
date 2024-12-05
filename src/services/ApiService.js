@@ -8,9 +8,10 @@ const authApi = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
 });
 
+
 // 请求拦截器：添加 Authorization 头和 deviceId
 authApi.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const state = store.getState(); // 从 Redux store 获取状态
     const { token, deviceId } = state.auth; // 从 auth 状态中获取 token 和 deviceId
 

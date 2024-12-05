@@ -2,11 +2,11 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { apiHandler } from '../../utils/apiHandler'; // 引入通用的处理函数
 import { publicApi, authApi } from '../../services/ApiService'; // 引入 API 实例
 import { getDeviceId } from '../../utils/Common'; // 引用共通方法
-
+import store from '../store'; // 引入 Redux store
 // 异步登录操作
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ email, password}, { rejectWithValue }) => {
     const deviceId = getDeviceId();
     const data = { email, password, deviceId };
 
@@ -29,13 +29,14 @@ export const loginUser = createAsyncThunk(
           
           resolve({ token, deviceId, userId, email,domain,companyId,apikey });
         },
-        // 失败回调
-        ({ errorMessage }) => {
-          reject(rejectWithValue(errorMessage));
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
         },
-        // 错误回调
-        ({ errorMessage }) => {
-          reject(rejectWithValue(errorMessage));
+        // 回调错误信息显示抛到错误边界
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
         }
       );
     });
@@ -45,7 +46,7 @@ export const loginUser = createAsyncThunk(
 // 异步登出操作
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
-  async (_, { getState, rejectWithValue }) => {
+  async ({ showBoundary }, { getState, rejectWithValue }) => {
     const { userId, deviceId } = getState().auth;
     console.log('★★getState().auth=',getState().auth);
     return new Promise((resolve, reject) => {
@@ -56,33 +57,36 @@ export const logoutUser = createAsyncThunk(
         'POST',
         // 成功回调
         () => {
+          console.log('***logout success');
           localStorage.removeItem('token');
           localStorage.removeItem('deviceId');
           localStorage.removeItem('companyId');
-          localStorage.removeItem('apikey');
-          window.location.href = '/login';
+          localStorage.removeItem('apikey');  
+          store.dispatch({ type: 'root/clearAllStates' });       
+          window.location.href = '/login';          
           resolve(true);
         },
-        // 失败回调
-        ({ errorMessage }) => {
-          alert(errorMessage);
-
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          console.log('***localError=',localError);
           localStorage.removeItem('token');
           localStorage.removeItem('deviceId');
           localStorage.removeItem('companyId');
           localStorage.removeItem('apikey');
+          store.dispatch({ type: 'root/clearAllStates' });
           window.location.href = '/login';
-          reject(rejectWithValue(errorMessage));
+          reject(rejectWithValue(localError));
         },
-        // 错误回调
-        ({ errorMessage }) => {
-          alert(errorMessage);
+        // 回调错误信息显示抛到错误边界
+        ( GlobalPopupError) => {
+          console.log('***GlobalPopupError=',GlobalPopupError);
           localStorage.removeItem('token');
           localStorage.removeItem('deviceId');
           localStorage.removeItem('companyId');
           localStorage.removeItem('apikey');
+          store.dispatch({ type: 'root/clearAllStates' });
           window.location.href = '/login';
-          reject(rejectWithValue(errorMessage));
+          showBoundary(GlobalPopupError);
         }
       );
     });
@@ -101,21 +105,21 @@ const authSlice = createSlice({
     apikey:null,    
     webSocketSuccess:false,
     loading: false,
-    error: null,
+    // error: null,
   },
   reducers: {
-    clearError: (state) => {
-      state.error = null;
-    },
+    // clearError: (state) => {
+    //   state.error = null;
+    // },
     setWebSocketSuccess: (state, action) => { // 新增 reducer
       state.webSocketSuccess = action.payload;
-    },
+    }
   },
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
-        state.error = null;
+        // state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
@@ -127,15 +131,16 @@ const authSlice = createSlice({
         state.companyId = action.payload.companyId;
         state.apikey = action.payload.apikey;
         console.log('***state.domain =',action.payload);
-        state.error = null;
+        // state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
+        console.log('***loginUser.rejected');
         state.loading = false;
-        state.error = action.payload;
+        // state.error = action.payload.errorMessage;
       })
       .addCase(logoutUser.pending, (state) => {
         state.loading = true;
-        state.error = null;
+        // state.error = null;
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;
@@ -149,7 +154,7 @@ const authSlice = createSlice({
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        // state.error = action.payload.errorMessage;
         state.userId = null;
         state.email = null;
         state.token = null;
@@ -161,5 +166,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError,setWebSocketSuccess } = authSlice.actions;
+export const { clearError,setWebSocketSuccess} = authSlice.actions;
 export default authSlice.reducer;

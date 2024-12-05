@@ -1,6 +1,7 @@
 // src/utils/Common.js
 import { v4 as uuidv4 } from 'uuid';
 import CryptoJS from 'crypto-js';
+import WebSocketClient from '../services/WebSocketClient';
 /**
  * 验证电子邮件格式
  * - 使用正则表达式验证电子邮件的格式是否有效
@@ -38,4 +39,27 @@ export function getDeviceId() {
     }
     return deviceId;
   }
- 
+/**
+ * 检查网络状态
+ * - 使用 WebSocket 的状态来判断是否处于网络连接状态
+ * @returns {Object} 包含网络状态和消息的对象
+ */
+export function checkNetworkStatus() {
+  const socket = WebSocketClient.socket;
+
+  if (!socket) {
+    return { isConnected: false, message: "WebSocket は接続されていません。" };
+  }
+
+  switch (socket.readyState) {
+    case WebSocket.OPEN:
+      return { isConnected: true, message: "ネットワークは正常です。" };
+    case WebSocket.CONNECTING:
+      return { isConnected: false, message: "ネットワーク接続中です..." };
+    case WebSocket.CLOSING:
+    case WebSocket.CLOSED:
+      return { isConnected: false, message: "WebSocket 接続が閉じられました。" };
+    default:
+      return { isConnected: false, message: "未知のネットワーク状態です。" };
+  }
+}

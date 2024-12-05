@@ -1,10 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import SearchSelectComponent from '../SearchSelectComponent/SearchSelectComponent';
+import Toast from '../Common/Toast/Toast';
+import AlertModal from '../Common/AlertModal/AlertModal';
+import { useDispatch } from "react-redux";
+import { setPopupInfo } from "../../redux/popupInfoSlice/popupInfoSlice";
 
 const WelcomeStep = () => {
   const [managerId, setManagerId] = useState(null); // 用于存储选中的 Manager ID
   const [companyMembers, setCompanyMembers] = useState([]); // 用于存储公司成员数据
+  const [open, setOpen] = useState(false);
+  const dispatch = useDispatch();
+   // グローバル関数
+   window.handleConfirm = () => {
+    console.log("確認ボタンがクリックされました！");
+  };
 
+  window.handleCancel = () => {
+    console.log("キャンセルボタンがクリックされました！");
+  };
+
+  const showToast = () => {
+    dispatch(
+      setPopupInfo({
+        popupType: "toast",
+        variant: "success",
+        content: "操作が成功しました！",
+      })
+    );
+  };
+
+  const showAlert = () => {
+    dispatch(
+      setPopupInfo({
+        popupType: "alert",
+        variant: "warn",
+        title: "警告",
+        content: "本当にこの操作を実行しますか？",
+        confirmButtonLabel: "確認",
+        confirmFunctionName: "handleConfirm",
+        cancelButtonLabel: "キャンセル",
+        cancelFunctionName: "handleCancel",
+      })
+    );
+  };
   // 模拟从 API 获取初始数据
   useEffect(() => {
     const fetchData = async () => {
@@ -32,10 +70,44 @@ const WelcomeStep = () => {
     console.log('Selected Item:', selectedItem);
     setManagerId(selectedItem.id); // 更新选中的 Manager ID
   };
+  const handleConfirm = () => {
+    console.log('用户点击了确定');
+    setOpen(false);
+  };
+
+  const handleCancel = () => {
+    console.log('用户点击了取消');
+    setOpen(false);
+  };
 
   return (
     <div>
       <h2>ようこそ</h2>
+      <button onClick={showToast}>Toast 通知を表示</button>
+      <button onClick={showAlert}>Alert 通知を表示</button>
+
+      {/* <button onClick={() => setOpen(true)}>Show Toast</button>
+      <Toast
+        open={open}
+        message="这是一个通知消息！"
+        severity="error"
+        onClose={() => setOpen(false)}
+      /> */}
+
+<button onClick={() => setOpen(true)}>显示警告</button>
+      <AlertModal
+        open={open}
+        title="删除确认"
+        message="确定要删除此项吗？此操作无法撤销！"
+        severity="warning"
+        confirmText="删除"
+        cancelText="取消"
+        showCancel={true}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
+
+
       <div style={{ marginTop: '20px' }}>
         <label style={{ display: 'block', marginBottom: '10px' }}>
           マネージャーを選択してください:

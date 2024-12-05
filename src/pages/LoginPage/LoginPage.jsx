@@ -5,24 +5,28 @@ import { useNavigate } from 'react-router-dom';
 import LoginPanelCmp from '../../components/LoginPanelCmp/LoginPanelCmp';
 import PromoPanelCmp from '../../components/PromoPanelCmp/PromoPanelCmp';
 import './LoginPage.css';
+import { useErrorBoundary } from "react-error-boundary";
 
 function LoginPage() {
   const navigate = useNavigate();
   const { userId,webSocketSuccess } = useSelector((state) => state.auth);
   const { permissionSuccess } = useSelector((state) => state.permissions);
+  const { showBoundary  } = useErrorBoundary();
+
 
   useEffect(() => {
     // 当 user 存在时表示登录成功，跳转到 MainPage
     console.log('***userId=',userId);
     console.log('***webSocketSuccess=',webSocketSuccess);
-    console.log('***permissionSuccess=',permissionSuccess);
-    if (userId && webSocketSuccess && permissionSuccess) {
+    console.log('***permissionSuccess=',permissionSuccess);    
+    if (userId && webSocketSuccess) {
       navigate('/main');
     }
-  }, [userId,webSocketSuccess,permissionSuccess, navigate]);
+  }, [userId,webSocketSuccess, navigate]);
 
   return (
     <div className="login-page slds-grid slds-wrap">
+      
       <div className="login-panel-container slds-size_1-of-2 slds-p-around_medium">
         <LoginPanelCmp />
       </div>
