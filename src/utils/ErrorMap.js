@@ -49,6 +49,12 @@ class ErrorMap {
         errorMessage: '関連付けが無効です。関連するフィールドをご確認ください。',
         showType: 'local',
       });
+      this.errorMap.set('EMAIL_ALREADY_REGISTERED', {
+        errorMessage: 'このメールアドレスはすでに登録されています。',
+        showType: 'local',
+      });
+
+
       this.errorMap.set('RESOURCE_NOT_FOUND', {
         errorMessage: 'リソースが見つかりません。URLをご確認ください。',
         showType: 'local',

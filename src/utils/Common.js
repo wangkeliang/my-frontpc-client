@@ -16,9 +16,9 @@ export function validateEmailFormat(email) {
     if (email.length > 40) {
       return { isValid: false, message: "メールアドレスは40文字以内で入力してください。" }; // 邮箱长度不能超过40个字符
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z0-9-]{2,}$/;
     if (!emailRegex.test(email)) {
-      return { isValid: false, message: "無効なメールアドレス形式です。" }; // 邮箱格式无效
+      return { isValid: false, message: "有効なメールアドレスを入力してください。" }; // 邮箱格式无效
     }
     return { isValid: true, message: "" }; // 验证成功
   }

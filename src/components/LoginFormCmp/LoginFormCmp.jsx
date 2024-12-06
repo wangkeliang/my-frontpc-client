@@ -1,42 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { loginUser } from "../../redux/auth/authSlice";
+import { validateEmailFormat } from "../../utils/Common"; // 引入邮箱验证方法
+import { LocalError } from "../../utils/LocalError"; // 引入 LocalError 类
+import { GlobalPopupError } from "../../utils/GlobalPopupError"; // 引入 GlobalPopupError 类
+import { setPopupError } from "../../redux/popupError/popupError"; // 引入 Popup 错误处理
+import { useErrorBoundary } from "react-error-boundary"; // 错误边界
+// import { registerUser } from '../../redux/auth/registerSlice';
+// MUI 组件
 import {
-  loginUser  
-} from '../../redux/auth/authSlice';
-import { validateEmailFormat } from '../../utils/Common'; // 引入通用的邮箱验证方法
-import '@salesforce-ux/design-system/assets/styles/salesforce-lightning-design-system.min.css';
-import './LoginFormCmp.css';
-import { LocalError } from '../../utils/LocalError'; // 引入 LocalError 类
-import { GlobalPopupError } from '../../utils/GlobalPopupError'; // 引入 GlobalPopupError 类
-import { setPopupError } from '../../redux/popupError/popupError';
-import { useErrorBoundary } from "react-error-boundary";
-
-
+  Box,
+  Typography,
+  Button,
+  FormControl,
+  InputLabel,
+  OutlinedInput,
+  InputAdornment,
+  IconButton,
+  Checkbox,
+  FormControlLabel,
+  Link,
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 function LoginFormCmp() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [localError, setLocalError] = useState('');
-  const { loading } = useSelector((state) => state.auth); // 获取 loading 状态
+  const [localError, setLocalError] = useState(null);
+  const { loading } = useSelector((state) => state.auth); // 获取加载状态
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { showBoundary  } = useErrorBoundary();
+  const { showBoundary } = useErrorBoundary();
 
   useEffect(() => {
     // 初始化登录表单
-    const savedEmail = localStorage.getItem('email');
-    const savedPassword = localStorage.getItem('password');
-    const rememberMe = !!(savedEmail && savedPassword);
+    const savedEmail = localStorage.getItem("email");
+    const savedPassword = localStorage.getItem("password");
+    const savedRememberMe = !!(savedEmail && savedPassword);
 
-    if (rememberMe) {
-    setEmail(savedEmail);
-    setPassword(savedPassword);
-    setRememberMe(rememberMe);
+    if (savedRememberMe) {
+      setEmail(savedEmail);
+      setPassword(savedPassword);
+      setRememberMe(savedRememberMe);
     }
-    // 清空登录状态
-    dispatch({ type: 'root/clearAllStates' });    
+
+    // 清空 Redux 状态
+    dispatch({ type: "root/clearAllStates" });
   }, [dispatch]);
 
   const handleLogin = async (e) => {
@@ -55,6 +67,7 @@ function LoginFormCmp() {
     if (!password) {
       setLocalError(new LocalError({ errorMessage: 'パスワードは必須です。' }));
       return;
+
     }
 
     const { isValid, message } = validateEmailFormat(email);
@@ -64,121 +77,150 @@ function LoginFormCmp() {
     }
 
     try {
-        // 保存登录信息
-        if (rememberMe) {
-        localStorage.setItem('email', email);
-        localStorage.setItem('password', password);
-        } else {
-        localStorage.removeItem('email');
-        localStorage.removeItem('password');
-        }
-        console.log('**before dispatch');
-        await dispatch(loginUser({ email, password})).unwrap();
-        console.log('**after dispatch');
-
-    } catch (error) {
-    //    // 捕获本地或全局错误
-      if (error instanceof LocalError) {
-        setLocalError(error); // 显示在本地页面
-      } else if (error instanceof GlobalPopupError) {
-        console.log('****error instanceof GlobalPopupError',error);
-        dispatch( setPopupError(error));
-        // showBoundary (error); // 抛到错误边界
+      // 处理本地存储
+      if (rememberMe) {
+        localStorage.setItem("email", email);
+        localStorage.setItem("password", password);
       } else {
-        console.log('****else',error);
-        dispatch( setPopupError(new GlobalPopupError({ error,errorMessage: '未知エラーが発生しました。' })))
-        // showBoundary (new GlobalPopupError({ error,errorMessage: '未知エラーが発生しました。' }));
+        localStorage.removeItem("email");
+        localStorage.removeItem("password");
       }
 
+      console.log("**before dispatch");
+      await dispatch(loginUser({ email, password })).unwrap();
+      console.log("**after dispatch");
+
+    } catch (error) {
+      if (error instanceof LocalError) {
+        setLocalError(error); // 设置本地错误
+      } else if (error instanceof GlobalPopupError) {
+        console.log("****error instanceof GlobalPopupError", error);
+        dispatch(setPopupError(error));
+      } else {
+        console.log("****else", error);
+        dispatch(setPopupError(new GlobalPopupError({ error, errorMessage: "未知エラーが発生しました。" })));
+      }
     }
   };
 
   const handleSignUpClick = () => {
-    navigate('/register');
+    navigate("/register");
   };
 
   return (
-    <div className="slds-box slds-theme_default slds-p-around_large slds-m-around_medium slds-size_1-of-1">
-      <form
-        className="slds-form slds-form_stacked"
-        onSubmit={handleLogin}
-      >
-        {localError && (
-          <div className="error-message slds-text-color_error">
-            {localError.errorMessage}
-          </div>
-        )}
+    <Box
+      sx={{
+        maxWidth: 400,
+        mx: "auto",
+        mt: 5,
+        p: 3,
+        boxShadow: 3,
+        borderRadius: 2,
+        bgcolor: "background.paper",
+      }}
+    >
+      <Typography variant="h5" component="h1" align="center" gutterBottom>
+        ログイン
+      </Typography>
 
-        <div className="slds-form-element slds-m-bottom_large">
-          <label className="slds-form-element__label" htmlFor="email">
-            メールアドレス
-          </label>
-          <div className="slds-form-element__control">
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="slds-input custom-input-height"
-            />
-          </div>
-        </div>
-
-        <div className="slds-form-element slds-m-bottom_large">
-          <label className="slds-form-element__label" htmlFor="password">
-            パスワード
-          </label>
-          <div className="slds-form-element__control">
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="slds-input custom-input-height"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          className="slds-button slds-button_brand slds-button_stretch slds-m-bottom_large custom-input-height button-spacing"
-          disabled={loading}
+      <form onSubmit={handleLogin}>
+{/* 错误信息占位 */}
+      <Box
+          sx={{
+            minHeight: 24, // 固定高度，避免内容晃动
+            mb: 1,
+          }}
         >
-          {loading ? 'ログイン中...' : 'ログイン'}
-        </button>
+          {localError && (
+            <Typography variant="body2" color="error">
+              {localError.errorMessage}
+            </Typography>
+          )}
+        </Box>
 
-        <div className="slds-form-element slds-checkbox slds-m-bottom_large">
-          <label className="slds-checkbox__label" htmlFor="remember">
-            <input
-              type="checkbox"
-              id="remember"
-              name="remember"
+        {/* Email 输入框 */}
+        <FormControl fullWidth margin="normal" variant="outlined" sx={{ mt: 2 }}>
+          <InputLabel htmlFor="email">メールアドレス</InputLabel>
+          <OutlinedInput
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            label="メールアドレス"
+            sx={{ height: 48 }} // 设置输入框高度
+          />
+        </FormControl>
+
+        {/* Password 输入框，带显示/隐藏功能 */}
+        <FormControl fullWidth margin="normal" variant="outlined">
+          <InputLabel htmlFor="password">パスワード</InputLabel>
+          <OutlinedInput
+            id="password"
+            type={showPassword ? "text" : "password"} // 根据状态动态切换类型
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label={showPassword ? "パスワードを隠す" : "パスワードを表示"}
+                  onClick={() => setShowPassword(!showPassword)} // 修正状态切换
+                  edge="end"
+                >
+                  {showPassword ? <Visibility /> : <VisibilityOff />} {/* 修正图标顺序 */}
+                </IconButton>
+              </InputAdornment>
+            }
+            label="パスワード"
+            sx={{ height: 48 }} // 设置输入框高度
+          />
+        </FormControl>
+
+        {/* 记住我 复选框 */}
+        <FormControlLabel
+          control={
+            <Checkbox
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
+              color="primary"
             />
-            <span className="slds-checkbox_faux"></span>
-            <span className="slds-form-element__label">ログイン情報を保存する</span>
-          </label>
-        </div>
+          }
+          label="ログイン情報を保存する"
+        />
 
-        <div className="slds-m-top_medium slds-m-bottom_large align-left">
-          <a href="/forgot-password" className="slds-text-link">
-            パスワードをお忘れですか?
-          </a>
-          <span className="link-spacing">|</span>
-          <a
+        {/* 登录按钮 */}
+        <Button
+          fullWidth
+          variant="contained"
+          color="primary"
+          type="submit"
+          sx={{ 
+            mt: 2, 
+            mb: 2,
+            height: 48, 
+            fontSize: "1rem", // 调整按钮文字大小
+          }}
+          
+          disabled={loading}
+        >
+          {loading ? "ログイン中..." : "ログイン"}
+        </Button>
+
+        <Box display="flex" justifyContent="space-between" sx={{ mt: 3 }}>
+          <Link href="/forgot-password" variant="body2">
+            パスワードをお忘れですか？
+          </Link>
+          <Link
             onClick={handleSignUpClick}
-            className="slds-text-link"
-            style={{ cursor: 'pointer' }}
+            variant="body2"
+            sx={{ cursor: "pointer" }}
           >
             サインアップ
-          </a>
-        </div>
+          </Link>
+        </Box>
       </form>
-    </div>
+    </Box>
   );
-}
+};
+
 
 export default LoginFormCmp;

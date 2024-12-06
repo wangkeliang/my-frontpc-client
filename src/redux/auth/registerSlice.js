@@ -8,7 +8,7 @@ import { apiHandler } from '../../utils/apiHandler';
  */
 export const registerUser = createAsyncThunk(
   'register/registerUser',
-  (userData, { rejectWithValue }) => {
+  async (userData, { rejectWithValue }) => {
     return new Promise((resolve, reject) => {
       apiHandler(
         publicApi,
@@ -17,10 +17,14 @@ export const registerUser = createAsyncThunk(
         'POST',
         // 成功回调
         (responseData) => resolve({ ...responseData, email: userData.email }),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue('登録に失敗しました。もう一度お試しください。'))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局错误捕获PopUp组件
+        (GlobalPopupError) => {
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -31,7 +35,7 @@ export const registerUser = createAsyncThunk(
  */
 export const resendConfirmationEmail = createAsyncThunk(
   'register/resendConfirmationEmail',
-  (email, { rejectWithValue }) => {
+  async (email, { rejectWithValue }) => {
     return new Promise((resolve, reject) => {
       apiHandler(
         publicApi,
@@ -40,10 +44,14 @@ export const resendConfirmationEmail = createAsyncThunk(
         'POST',
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage || 'メールの再送に失敗しました。')),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue('メールの再送に失敗しました。'))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局错误捕获PopUp组件
+        (GlobalPopupError) => {
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -53,13 +61,7 @@ const registerSlice = createSlice({
   name: 'register',
   initialState: {
     status: 'idle', // idle, loading, succeeded, failed
-    formError: '', // 记录异步操作的错误信息
     email: '', // 存储注册用户的 email
-  },
-  reducers: {
-    setFormError: (state, action) => {
-      state.formError = action.payload;
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -68,12 +70,10 @@ const registerSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.formError = ''; // 注册成功后清空错误信息
         state.email = action.payload.email; // 存储用户的 email
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.status = 'failed';
-        state.formError = action.payload; // 注册失败时显示错误信息
       })
       .addCase(resendConfirmationEmail.pending, (state) => {
         state.status = 'loading';
@@ -82,11 +82,9 @@ const registerSlice = createSlice({
         state.status = 'succeeded';
       })
       .addCase(resendConfirmationEmail.rejected, (state, action) => {
-        state.status = 'failed';
-        state.formError = action.payload;
-      });
+        state.status = 'failed';   
+      });     
   },
 });
 
-export const { setFormError } = registerSlice.actions;
 export default registerSlice.reducer;

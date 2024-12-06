@@ -1,16 +1,36 @@
 import React from 'react';
-import './PromoPanelCmp.css';
+import { Box, Button, Typography } from '@mui/material';
 
 function PromoPanelCmp() {
   return (
-    <div className="promo-panel slds-text-align_center">
-      <h2 className="promo-title">あなたのビジネスにさらなる成長を</h2>
-      <p className="promo-description">セールス、サービス、マーケティング、ITなど<br />会社のあらゆる業務の効率化を支援</p>
-      <div className="promo-buttons">
-        <button className="slds-button slds-button_brand">無料トライアル</button>
-        <button className="slds-button slds-button_neutral">デモを見せる</button>
-      </div>
-    </div>
+    <Box
+      sx={{
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 2, // 子项之间的间距
+        px: 2, // 左右内边距
+      }}
+    >
+      <Typography variant="h4" component="h2" sx={{ fontWeight: 'bold' }}>
+        あなたのビジネスにさらなる成長を
+      </Typography>
+      <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+        セールス、サービス、マーケティング、ITなど
+        <br />
+        会社のあらゆる業務の効率化を支援
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 2 }}>
+        <Button variant="contained" color="primary">
+          無料トライアル
+        </Button>
+        <Button variant="outlined" color="primary">
+          デモを見せる
+        </Button>
+      </Box>
+    </Box>
   );
 }
 
