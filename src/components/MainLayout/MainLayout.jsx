@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import Header from '../Header/Header';
 import ContentArea from '../ContentArea/ContentArea';
 import LoginFooterCmp from '../LoginFooterCmp/LoginFooterCmp';
+import Footer from '../Footer/Footer';
 import InitialSetupModal from '../InitialSetupModal/InitialSetupModal';
 import { Box } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
@@ -108,7 +109,8 @@ const MainLayout = () => {
           zIndex: 1100,
         }}
       >
-        <LoginFooterCmp />
+        {/* <LoginFooterCmp /> */}
+        <Footer/> 
       </Box>
 
       {/* 初始化设置模态窗口 */}

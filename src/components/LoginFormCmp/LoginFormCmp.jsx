@@ -124,19 +124,20 @@ function LoginFormCmp() {
       </Typography>
 
       <form onSubmit={handleLogin}>
-{/* 错误信息占位 */}
+      {/* 错误信息占位 */}
       <Box
           sx={{
             minHeight: 24, // 固定高度，避免内容晃动
             mb: 1,
+            
           }}
         >
           {localError && (
-            <Typography variant="body2" color="error">
+            <Typography variant="body2" color="error" >
               {localError.errorMessage}
             </Typography>
           )}
-        </Box>
+      </Box>
 
         {/* Email 输入框 */}
         <FormControl fullWidth margin="normal" variant="outlined" sx={{ mt: 2 }}>

@@ -49,7 +49,7 @@ const InitialSetupModal = () => {
   const companyInfoRef = useRef(null); // 定义 ref，用于保存 CompanyInfoStep 的方法
   const completionRef = useRef(null);
   const applicationInfoRef = useRef(null);
-
+  const roleMaster = useSelector((state) => state.master?.roleMaster || []);
   // // 初始化数据加载
   useEffect(() => {
     try{
@@ -66,20 +66,26 @@ const InitialSetupModal = () => {
   
             const fetchedCompanyId = userInfo.companyId;
             const userType = userInfo.userType;
-  
+            console.log('***fetchManagerInfo is called');
             await dispatch(fetchManagerInfo(userId)).unwrap();
+            console.log('***fetchUserRoles is called');
             await dispatch(fetchUserRoles(userId)).unwrap();
+            console.log('***fetchRoleApplications is called');
             await dispatch(fetchRoleApplications(userId)).unwrap();
   
             if (fetchedCompanyId) {
+              console.log('***fetchCompanyInfo is called');
               await dispatch(fetchCompanyInfo(fetchedCompanyId)).unwrap();
+              console.log('***fetchCompanyMembers is called');
               await dispatch(fetchCompanyMembers(fetchedCompanyId)).unwrap();
+              console.log('***fetchCompanyAdmins is called');
               await dispatch(fetchCompanyAdmins(fetchedCompanyId)).unwrap();
             }
   
-            if (userType) {
-              await dispatch(fetchRoleMaster(userType)).unwrap();
-            }
+            console.log('***fetchRoleMaster is called');
+            await dispatch(fetchRoleMaster(userType)).unwrap();
+
+            console.log('#####roleMaster=',roleMaster);
             console.log('*** Initial setup data loading completed ***');
           } catch (error) {
             console.error('Error during setup:', error);
@@ -177,6 +183,7 @@ const InitialSetupModal = () => {
   return (
     <Box
     sx={{
+      mt:2,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -187,18 +194,23 @@ const InitialSetupModal = () => {
       height: '100%',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       zIndex: 1000,
+      overflow: 'auto', // 添加自动滚动
+      minHeight: '100vh', // 让内容至少占满屏幕高度
+      padding: '16px', // 添加内边距，避免内容贴边
     }}
   >
     <Paper
       elevation={3}
       sx={{
-        width: '80%',
-        maxWidth: '600px',
+        width: '50%',
         padding: 4,
         display: 'flex',
         flexDirection: 'column',
-        height: '80vh',  // 固定高度
+        height: '83vh',  // 固定高度
         overflow: 'hidden', // 防止内容溢出
+        maxHeight: '95vh', // 设置最大高度
+        overflow: 'auto', // 防止内容溢出时内部滚动
+        // backgroundColor:'blue',
       }}
     >
       <StepIndicator currentStep={currentStep} labels={stepComponents.map((item) => item.label)} />
