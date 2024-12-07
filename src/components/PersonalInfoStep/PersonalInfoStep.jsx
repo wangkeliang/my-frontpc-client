@@ -18,6 +18,7 @@ import { GlobalPopupError } from "../../utils/GlobalPopupError"; // 引入 Globa
 import { setPopupError } from "../../redux/popupError/popupError"; // 引入 Popup 错误处理
 import { useErrorBoundary } from "react-error-boundary"; // 错误边界
 import { setPopupInfo } from "../../redux/popupInfoSlice/popupInfoSlice"; // 导入 setPopupInfo action
+import ErrorMap from '../../utils/ErrorMap';
 
 const PersonalInfoStep = forwardRef((props, ref) => {
   const dispatch = useDispatch();
@@ -309,8 +310,14 @@ const PersonalInfoStep = forwardRef((props, ref) => {
         console.log("****error instanceof GlobalPopupError", error);
         dispatch(setPopupError(error));
       } else {
-        console.log("****else", error);
-        dispatch(setPopupError(new GlobalPopupError({ error, errorMessage: "未知エラーが発生しました。" })));
+        const errorConfig = ErrorMap.getError(error?.code) || ErrorMap.getError('SYSTEM_ERROR');
+        // 创建全局错误对象
+        const e = new GlobalPopupError({
+          error: error, // 保留原始错误信息
+          ...errorConfig, // 包括错误消息和展示类型
+        });
+
+        dispatch(setPopupError(e ));
       }    
       return false;
     }    
@@ -382,6 +389,15 @@ return (
           value={fields.lastName}
           onChange={(e) => handleFieldChange('lastName', e.target.value)}
           size="small" 
+          slotProps={{
+            inputLabel: {
+              sx: {
+                "& .MuiInputLabel-asterisk": {
+                  color: "red", // 设置星号的颜色
+                },
+              },
+            },
+          }}
         />
       </Grid>
       <Grid  size={6}>
@@ -394,8 +410,14 @@ return (
           value={fields.firstName}
           onChange={(e) => handleFieldChange('firstName', e.target.value)}
           size="small" 
-          FormHelperTextProps={{
-            sx: { position: 'absolute', bottom: 0 }, // 固定错误信息的位置
+          slotProps={{
+            inputLabel: {
+              sx: {
+                "& .MuiInputLabel-asterisk": {
+                  color: "red", // 设置星号的颜色
+                },
+              },
+            },
           }}
         />
       </Grid>
@@ -441,6 +463,15 @@ return (
           value={fields.phoneNumber}
           onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}          
           size="small" 
+          slotProps={{
+            inputLabel: {
+              sx: {
+                "& .MuiInputLabel-asterisk": {
+                  color: "red", // 设置星号的颜色
+                },
+              },
+            },
+          }}
         />
       </Grid>
       <Grid  size={6}>
@@ -493,6 +524,15 @@ return (
             alignItems: 'flex-start', // 标签垂直顶部对齐
             gap: '4px', // 标签之间的间隙
             minHeight: '40px', // 设置最小高度
+          },
+        }}
+        slotProps={{
+          inputLabel: {
+            sx: {
+              "& .MuiInputLabel-asterisk": {
+                color: "red", // 设置星号的颜色
+              },
+            },
           },
         }}
       />
