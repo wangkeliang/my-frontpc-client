@@ -46,7 +46,7 @@ export const loginUser = createAsyncThunk(
 // 异步登出操作
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
-  async ({ showBoundary }, { getState, rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => { // 第一个参数改为 `_` 表示未使用
     const { userId, deviceId } = getState().auth;
     console.log('★★getState().auth=',getState().auth);
     return new Promise((resolve, reject) => {
@@ -58,6 +58,7 @@ export const logoutUser = createAsyncThunk(
         // 成功回调
         () => {
           console.log('***logout success');
+
           localStorage.removeItem('token');
           localStorage.removeItem('deviceId');
           localStorage.removeItem('companyId');
@@ -86,7 +87,7 @@ export const logoutUser = createAsyncThunk(
           localStorage.removeItem('apikey');
           store.dispatch({ type: 'root/clearAllStates' });
           window.location.href = '/login';
-          showBoundary(GlobalPopupError);
+          reject(rejectWithValue(GlobalPopupError));
         }
       );
     });

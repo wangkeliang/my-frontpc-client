@@ -14,6 +14,7 @@ import registerReducer from './auth/registerSlice';
 import permissionReducer from './permission/permissionSlice';
 import popupErrorReducer from './popupError/popupError';
 import popupInfoSlice from './popupInfoSlice/popupInfoSlice';
+import loadingSlice from './loading/loadingSlice.js';
 // 配置 redux-persist
 const persistConfig = {
   key: 'root',
@@ -23,6 +24,7 @@ const persistConfig = {
 
 const rootReducer = (state, action) => {
   if (action.type === 'root/clearAllStates') {
+    storageSession.removeItem('persist:root'); // 清空持久化存储
     state = undefined; // 将 Redux 状态重置为 undefined
   }
   return combineReducers({
@@ -38,7 +40,8 @@ const rootReducer = (state, action) => {
     application: applicationSlice,
     master: masterSlice,
     popupError: popupErrorReducer,
-    popupInfo:popupInfoSlice,
+    popupInfo:popupInfoSlice, 
+    loading:loadingSlice,   
   })(state, action);
 };
 

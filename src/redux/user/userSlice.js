@@ -18,10 +18,15 @@ export const fetchUserInfo = createAsyncThunk(
         'GET',
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -42,10 +47,15 @@ export const fetchManagerInfo = createAsyncThunk(
         'GET',
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -66,10 +76,15 @@ export const updateUser = createAsyncThunk(
         'POST',
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-         // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -90,10 +105,15 @@ export const fetchUserRoles = createAsyncThunk(
         'GET',
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -114,10 +134,15 @@ export const setUserRoles = createAsyncThunk(
         'POST',
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -138,10 +163,15 @@ export const transferUserRolesFromApplications = createAsyncThunk(
           'POST',
           // 成功回调
           (responseData) => resolve(responseData),
-          // 失败回调
-          ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-          // 错误回调
-          ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+          // 回调错误信息显示到当前页面
+          (localError) => {
+            reject(rejectWithValue(localError));
+          },
+          // 回调错误信息显示抛到全局PopUp组件
+          (GlobalPopupError) => {    
+            console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+            reject(rejectWithValue(GlobalPopupError));
+        }
         );
       });
     }
@@ -163,10 +193,15 @@ export const setRoleApplications = createAsyncThunk(
         'POST',
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -186,8 +221,15 @@ export const fetchRoleApplications = createAsyncThunk(
         null,
         'GET',
         (responseData) => resolve(responseData),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -202,16 +244,8 @@ const userSlice = createSlice({
     userRoles: [],
     roleApplications: [],
     isLoading: false,
-    error: null,
   },
   reducers: {
-    /**
-     * 清除错误信息
-     * 用于在需要时重置错误状态
-     */
-    clearError(state) {
-      state.error = null;
-    },
     /**
      * 更新 userInfo
      */
@@ -250,7 +284,6 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserInfo.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
-        state.error = action.payload; // 保存错误信息
       })
 
       // 处理 fetchManagerInfo 操作
@@ -263,7 +296,6 @@ const userSlice = createSlice({
       })
       .addCase(fetchManagerInfo.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
-        state.error = action.payload; // 保存错误信息
       })
 
       // 处理 updateUser 操作
@@ -276,7 +308,6 @@ const userSlice = createSlice({
       })
       .addCase(updateUser.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
-        state.error = action.payload; // 保存错误信息
         console.log('****state.error=',state.error);
       })
 
@@ -290,7 +321,6 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserRoles.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
-        state.error = action.payload; // 保存错误信息
       })
 
       // 处理 setUserRoles 操作
@@ -303,8 +333,6 @@ const userSlice = createSlice({
       })
       .addCase(setUserRoles.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
-        state.error = action.payload; // 保存错误信息
-        console.log('****state.error=',state.error);
       })
 
     // 处理 transferUserRolesFromApplications 操作
@@ -317,7 +345,6 @@ const userSlice = createSlice({
         })
         .addCase(transferUserRolesFromApplications.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
         })
 
       // 处理 setRoleApplications 操作
@@ -330,7 +357,6 @@ const userSlice = createSlice({
       })
       .addCase(setRoleApplications.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
-        state.error = action.payload; // 保存错误信息
       })
 
       // 处理 fetchRoleApplications 操作
@@ -343,11 +369,10 @@ const userSlice = createSlice({
       })
       .addCase(fetchRoleApplications.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
-        state.error = action.payload; // 保存错误信息
       });
   },
 });
 
 // 导出 actions 和 reducer
-export const { clearError, updateUserInfo, updateManagerInfo, updateUserRoles, updateRoleApplications } = userSlice.actions;
+export const { updateUserInfo, updateManagerInfo, updateUserRoles, updateRoleApplications } = userSlice.actions;
 export default userSlice.reducer;

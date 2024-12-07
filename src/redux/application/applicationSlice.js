@@ -16,8 +16,15 @@ export const fetchApplications = createAsyncThunk(
         null,
         'GET',
         (responseData) => resolve(responseData),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -37,8 +44,15 @@ export const addApplication = createAsyncThunk(
         applicationData,
         'POST',
         (responseData) => resolve(responseData),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -58,8 +72,15 @@ export const updateApplication = createAsyncThunk(
         applicationData,
         'POST',
         (responseData) => resolve(responseData),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -71,16 +92,8 @@ const applicationSlice = createSlice({
   initialState: {
     applications: [], // 申请信息列表
     isLoading: false, // 加载状态
-    error: null, // 错误信息
   },
   reducers: {
-    /**
-     * 清除错误信息
-     * 用于在需要时重置错误状态
-     */
-    clearError(state) {
-      state.error = null;
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -94,7 +107,6 @@ const applicationSlice = createSlice({
       })
       .addCase(fetchApplications.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
-        state.error = action.payload; // 保存错误信息
       })
 
       // 处理 addApplication 操作
@@ -107,7 +119,6 @@ const applicationSlice = createSlice({
       })
       .addCase(addApplication.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
       })
 
       // 处理 updateApplication 操作
@@ -124,11 +135,10 @@ const applicationSlice = createSlice({
       })
       .addCase(updateApplication.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
       });
   },
 });
 
 // 导出 actions 和 reducer
-export const { clearError } = applicationSlice.actions;
+export const { } = applicationSlice.actions;
 export default applicationSlice.reducer;

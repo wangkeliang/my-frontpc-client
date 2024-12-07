@@ -17,10 +17,15 @@ export const fetchUserPermissions = createAsyncThunk(
         'GET', // GET 请求
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -34,16 +39,8 @@ const permissionSlice = createSlice({
     refreshPermissionFlag:true,
     permissionSuccess:false,
     isLoading: false, // 加载状态
-    error: null, // 错误信息
   },
   reducers: {
-    /**
-     * 清除错误信息
-     * 用于在需要时重置错误状态
-     */
-    clearError(state) {
-      state.error = null;
-    },
     setPermissionSuccess: (state, action) => { // 新增 reducer
       state.permissioninfo = action.payload;
     },
@@ -56,7 +53,6 @@ const permissionSlice = createSlice({
       // 处理 fetchUserPermissions 操作
       .addCase(fetchUserPermissions.pending, (state) => {
         state.isLoading = true;
-        state.error = null;
         state.permissionSuccess=false;
       })
       .addCase(fetchUserPermissions.fulfilled, (state, action) => {
@@ -66,12 +62,11 @@ const permissionSlice = createSlice({
       })
       .addCase(fetchUserPermissions.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload; // 保存错误信息
         state.permissionSuccess=false;
       });
   },
 });
 
 // 导出 actions 和 reducer
-export const { clearError,setPermissionSuccess,setRefreshPermissionFlag} = permissionSlice.actions;
+export const { setPermissionSuccess,setRefreshPermissionFlag} = permissionSlice.actions;
 export default permissionSlice.reducer;

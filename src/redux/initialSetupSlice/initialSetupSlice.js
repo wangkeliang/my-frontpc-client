@@ -16,10 +16,15 @@ export const fetchInitialSetupData = createAsyncThunk(
         'POST',
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -32,7 +37,6 @@ const initialSetupSlice = createSlice({
     showModal: false,
     steps: [],
     isLoading: false,
-    error: null,
   },
   reducers: {
     setCurrentStep: (state, action) => {
@@ -46,7 +50,6 @@ const initialSetupSlice = createSlice({
     builder
       .addCase(fetchInitialSetupData.pending, (state) => {
         state.isLoading = true;
-        state.error = null;
       })
       .addCase(fetchInitialSetupData.fulfilled, (state, action) => {
         state.isLoading = false;
@@ -57,8 +60,7 @@ const initialSetupSlice = createSlice({
         console.log('Fetched data:', action.payload);
       })
       .addCase(fetchInitialSetupData.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload || 'Something went wrong';        
+        state.isLoading = false;      
       });
   },
 });

@@ -18,10 +18,15 @@ export const fetchCompanyInfo = createAsyncThunk(
         'GET',
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -41,8 +46,15 @@ export const fetchCompanyByDomain = createAsyncThunk(
           null,
           'GET',
           (responseData) => resolve(responseData),
-          ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-          ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+          // 回调错误信息显示到当前页面
+          (localError) => {
+            reject(rejectWithValue(localError));
+          },
+          // 回调错误信息显示抛到全局PopUp组件
+          (GlobalPopupError) => {    
+            console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+            reject(rejectWithValue(GlobalPopupError));
+          }
         );
       });
     }
@@ -63,8 +75,15 @@ export const addCompany = createAsyncThunk(
         companyData,
         'POST',
         (responseData) => resolve(responseData),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -84,8 +103,15 @@ export const updateCompany = createAsyncThunk(
         companyData,
         'POST',
         (responseData) => resolve(responseData),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -105,8 +131,15 @@ export const fetchCompanyMembers = createAsyncThunk(
         null,
         'GET',
         (responseData) => resolve(responseData),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -126,8 +159,15 @@ export const fetchCompanyAdmins = createAsyncThunk(
         null,
         'GET',
         (responseData) => resolve(responseData),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -143,15 +183,7 @@ const companySlice = createSlice({
     isLoading: false,
     error: null,
   },
-  reducers: {
-    /**
-     * 清除错误信息
-     * 用于在需要时重置错误状态
-     */
-    clearError(state) {
-      state.error = null;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       // 处理 fetchCompanyInfo 操作
@@ -164,7 +196,6 @@ const companySlice = createSlice({
       })
       .addCase(fetchCompanyInfo.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
       })
 
       // 处理 fetchCompanyByDomain 操作
@@ -177,7 +208,6 @@ const companySlice = createSlice({
       })
       .addCase(fetchCompanyByDomain.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
       })
       
 
@@ -191,7 +221,6 @@ const companySlice = createSlice({
       })
       .addCase(addCompany.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
       })
 
       // 处理 updateCompany 操作
@@ -204,7 +233,6 @@ const companySlice = createSlice({
       })
       .addCase(updateCompany.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
       })
 
       // 处理 fetchCompanyMembers 操作
@@ -217,7 +245,6 @@ const companySlice = createSlice({
       })
       .addCase(fetchCompanyMembers.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
       })
 
       // 处理 fetchCompanyAdmins 操作
@@ -230,11 +257,10 @@ const companySlice = createSlice({
       })
       .addCase(fetchCompanyAdmins.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
       });
   },
 });
 
 // 导出 actions 和 reducer
-export const { clearError } = companySlice.actions;
+export const { } = companySlice.actions;
 export default companySlice.reducer;

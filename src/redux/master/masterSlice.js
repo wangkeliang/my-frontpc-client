@@ -19,10 +19,15 @@ export const fetchRoleMaster = createAsyncThunk(
         'GET', // 使用 GET 方法
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -34,35 +39,24 @@ const masterSlice = createSlice({
   initialState: {
     roleMaster: [],
     isLoading: false,
-    error: null,
   },
-  reducers: {
-    /**
-     * 清除错误信息
-     */
-    clearError: (state) => {
-      state.error = null;
-    },
-  },
+  reducers: { },
   extraReducers: (builder) => {
     builder
       // 处理 fetchRoleMaster 操作
       .addCase(fetchRoleMaster.pending, (state) => {
         state.isLoading = true; // 开始加载
-        state.error = null; // 清除错误
       })
       .addCase(fetchRoleMaster.fulfilled, (state, action) => {
         state.isLoading = false; // 加载完成
         state.roleMaster = action.payload || []; // 保存返回数据
-        state.error = null; // 清除错误
       })
       .addCase(fetchRoleMaster.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
-        state.error = action.payload; // 保存错误信息
       });
   },
 });
 
 // 导出 actions 和 reducer
-export const { clearError } = masterSlice.actions;
+export const { } = masterSlice.actions;
 export default masterSlice.reducer;

@@ -18,10 +18,15 @@ export const fetchInformationList = createAsyncThunk(
         'GET',
         // 成功回调
         (responseData) => resolve(responseData),
-        // 失败回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage)),
-        // 错误回调
-        ({ errorMessage }) => reject(rejectWithValue(errorMessage))
+        // 回调错误信息显示到当前页面
+        (localError) => {
+          reject(rejectWithValue(localError));
+        },
+        // 回调错误信息显示抛到全局PopUp组件
+        (GlobalPopupError) => {    
+          console.log('slice 错误回调，GlobalPopupError.errorMessage=',GlobalPopupError.errorMessage); 
+          reject(rejectWithValue(GlobalPopupError));
+        }
       );
     });
   }
@@ -33,16 +38,8 @@ const informationSlice = createSlice({
   initialState: {
     informationList: [], // 信息列表
     isLoading: false, // 加载状态
-    error: null, // 错误信息
   },
   reducers: {
-    /**
-     * 清除错误信息
-     * 用于在需要时重置错误状态
-     */
-    clearError(state) {
-      state.error = null;
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -56,11 +53,10 @@ const informationSlice = createSlice({
       })
       .addCase(fetchInformationList.rejected, (state, action) => {
         state.isLoading = false; // 加载失败
-        state.error = action.payload; // 保存错误信息
       });
   },
 });
 
 // 导出 actions 和 reducer
-export const { clearError } = informationSlice.actions;
+export const { } = informationSlice.actions;
 export default informationSlice.reducer;
