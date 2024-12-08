@@ -21,9 +21,11 @@ import ErrorMap from '../../utils/ErrorMap';
 import { setPopupError } from "../../redux/popupError/popupError"; // 引入 Popup 错误处理
 import { useErrorBoundary } from "react-error-boundary"; // 错误边界
 import { setPopupInfo } from "../../redux/popupInfoSlice/popupInfoSlice"; // 导入 setPopupInfo action
+import ErrorHandler from '../../utils/ErrorHandler';
 
 const CompanyInfoStep = forwardRef((props, ref) => {
   const dispatch = useDispatch();
+  const { showBoundary } = useErrorBoundary();
   const companyInfo = useSelector((state) => state.company?.companyInfo || null);
   const domain = useSelector((state) => state.auth?.domain || "");
   const [errors, setErrors] = useState({}); // 错误状态 
@@ -161,25 +163,16 @@ const CompanyInfoStep = forwardRef((props, ref) => {
       }
 
     }catch(error){
-      if (error instanceof LocalError) {
-        setLocalError(error); // 设置本地错误
-      } else if (error instanceof GlobalPopupError) {
-        console.log("****error instanceof GlobalPopupError", error);
-        dispatch(setPopupError(error));
-      } else {
-        const errorConfig = ErrorMap.getError(error?.code) || ErrorMap.getError('SYSTEM_ERROR');
-        // 创建全局错误对象
-        const e = new GlobalPopupError({
-          error: error, // 保留原始错误信息
-          ...errorConfig, // 包括错误消息和展示类型
-        });
-
-        dispatch(setPopupError(e ));
-      }    
+      ErrorHandler.doCatchedError(
+        error,
+        setLocalError,       // 本地错误处理函数
+        showBoundary,   // 错误边界处理函数
+        'popup',             // GlobalPopupError 处理方式
+        'popup',             // 其他错误处理方式
+        'SYSTEM_ERROR'       // 默认错误代码
+      );
       return false;
-
     }   
-
   };
 
   useImperativeHandle(ref, () => ({

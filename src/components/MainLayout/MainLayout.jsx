@@ -87,7 +87,7 @@ const MainLayout = () => {
         sx={{
           flex: 1,
           marginTop: '64px', // 确保内容从 Header 下方开始（Header 的高度）
-          overflowY: 'auto', // 只允许内容区域垂直滚动         
+          overflowY: 'auto', // 只允许内容区域垂直滚动 
           backgroundColor: 'background.paper',
  
         }}
@@ -96,7 +96,7 @@ const MainLayout = () => {
       </Box>
 
       {/* Footer 部分 */}
-      <Box
+      {/* <Box
         component="footer"
         sx={{
           position: 'fixed',
@@ -108,10 +108,10 @@ const MainLayout = () => {
           textAlign: 'center',
           zIndex: 1100,
         }}
-      >
+      > */}
         {/* <LoginFooterCmp /> */}
-        <Footer/> 
-      </Box>
+        {/* <Footer/>  */}
+      {/* </Box> */}
 
       {/* 初始化设置模态窗口 */}
       {showModal && <InitialSetupModal />}

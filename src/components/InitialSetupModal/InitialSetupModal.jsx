@@ -31,12 +31,14 @@ import { handleLogout } from '../../services/logoutHandler';
 import { GlobalPopupError } from "../../utils/GlobalPopupError"; // 引入 GlobalPopupError 类
 import { useErrorBoundary } from "react-error-boundary"; // 错误边界
 import { setPopupError } from "../../redux/popupError/popupError"; // 引入 Popup 错误处理
+import { LocalError } from "../../utils/LocalError"; // 引入 LocalError 类
+import ErrorHandler from '../../utils/ErrorHandler';
 
 const InitialSetupModal = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { showBoundary } = useErrorBoundary();
-
+  const [localError, setLocalError] = useState(null);
 
   // 从 Redux Store 中获取状态
   const { currentStep, steps, error } = useSelector((state) => state.initialSetup);
@@ -94,7 +96,14 @@ const InitialSetupModal = () => {
       };  
       initializeSetupData();
     }catch(error){
-      showBoundary(new GlobalPopupError({ error, errorMessage: "未知エラーが発生しました。" }));
+      ErrorHandler.doCatchedError(
+        error,
+        setLocalError,       // 本地错误处理函数
+        showBoundary,   // 错误边界处理函数
+        'popup',             // GlobalPopupError 处理方式
+        'throw',             // 其他错误处理方式
+        'SYSTEM_ERROR'       // 默认错误代码
+      );
     }
 
   }, [dispatch, userId,webSocketSuccess]);
@@ -175,7 +184,14 @@ const InitialSetupModal = () => {
       }
 
     }catch(error){
-      showBoundary(new GlobalPopupError({ error, errorMessage: "未知エラーが発生しました。" }));
+      ErrorHandler.doCatchedError(
+        error,
+        setLocalError,       // 本地错误处理函数
+        showBoundary,   // 错误边界处理函数
+        'popup',             // GlobalPopupError 处理方式
+        'popup',             // 其他错误处理方式
+        'SYSTEM_ERROR'       // 默认错误代码
+      );
     }
     
   };
@@ -202,11 +218,12 @@ const InitialSetupModal = () => {
     <Paper
       elevation={3}
       sx={{
-        width: '50%',
+        mt:4,
+        width: '60%',
         padding: 4,
         display: 'flex',
         flexDirection: 'column',
-        height: '83vh',  // 固定高度
+        height: '88vh',  // 固定高度
         overflow: 'hidden', // 防止内容溢出
         maxHeight: '95vh', // 设置最大高度
         overflow: 'auto', // 防止内容溢出时内部滚动

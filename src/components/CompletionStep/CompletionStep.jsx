@@ -1,13 +1,21 @@
 import React, { forwardRef, useImperativeHandle, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserInfo } from '../../redux/user/userSlice'; // 假设该方法已存在
-import './CompletionStep.css';
+import { Box, Typography, CircularProgress } from '@mui/material';
+import { LocalError } from "../../utils/LocalError"; // 引入 LocalError 类
+import ErrorHandler from '../../utils/ErrorHandler';
+import { GlobalPopupError } from "../../utils/GlobalPopupError"; // 引入 GlobalPopupError 类
+import { setPopupError } from "../../redux/popupError/popupError"; // 引入 Popup 错误处理
+import { useErrorBoundary } from "react-error-boundary"; // 错误边界
+
 
 const CompletionStep = forwardRef((props, ref) => {
   const dispatch = useDispatch();
   const [statusMessage, setStatusMessage] = useState('');
+  const [loading, setLoading] = useState(true);
   const userId = useSelector((state) => state.auth?.userId); // 从 store 获取 userId
-
+  const [localError, setLocalError] = useState(null);
+  const { showBoundary } = useErrorBoundary();
   useEffect(() => {
     const checkUserApplicationStatus = async () => {
       try {
@@ -42,12 +50,19 @@ const CompletionStep = forwardRef((props, ref) => {
             '現在の申請状況は確認中です。少々お待ちください。'
           );
         }
+        return true;
       } catch (error) {
-        console.error('ユーザー情報の取得中にエラーが発生しました: ', error);
-        setStatusMessage(
-          'お客様の情報を取得できませんでした。\n\n' +
-          '再度お試しいただくか、管理者までお問い合わせください。'
+        ErrorHandler.doCatchedError(
+          error,
+          setLocalError,       // 本地错误处理函数
+          showBoundary,        // 错误边界处理函数
+          'popup',             // GlobalPopupError 处理方式
+          'popup',             // 其他错误处理方式
+          'SYSTEM_ERROR'       // 默认错误代码
         );
+        return false;
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -64,11 +79,39 @@ const CompletionStep = forwardRef((props, ref) => {
   }));
 
   return (
-    <div className="completion-step">
-      <div className="completion-message">
-        <p>{statusMessage}</p>
-      </div>
-    </div>
+    <Box className="completion-step" sx={{ padding: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'left', minHeight: '50vh' }}>
+      {/* 错误信息部分 */}
+      <Box
+        sx={{
+          minHeight: 24, // 为错误信息预留固定高度
+          display: 'flex', // 使用 flex 布局
+          alignItems: 'center', // 垂直居中
+          justifyContent: 'center', // 水平居中
+          marginBottom: 2, // 与下方输入框保持距离
+        }}
+      >
+        {localError && (
+          <Typography 
+            variant="body2" 
+            color="error"
+            sx={{
+              textAlign: 'center', // 文本居中对齐
+              lineHeight: '24px', // 确保文字垂直居中
+            }}
+          >
+            {localError.errorMessage}
+          </Typography>
+        )}
+      </Box>
+
+      {loading ? (
+        <CircularProgress />
+      ) : (
+        <Typography variant="body1" className="completion-message" sx={{ whiteSpace: 'pre-line', textAlign: 'left' }}>
+          {statusMessage}
+        </Typography>
+      )}
+    </Box>
   );
 });
 
