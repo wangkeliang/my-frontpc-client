@@ -4,7 +4,6 @@ import { setWebSocketSuccess } from '../redux/auth/authSlice'; // 导入 action
 import ErrorMap from '../utils/ErrorMap';
 import { GlobalPopupError } from '../utils/GlobalPopupError';
 import { setPopupError } from '../redux/popupError/popupError';
-
 class WebSocketClient {
   constructor() {
     if (!WebSocketClient.instance) {
@@ -64,9 +63,9 @@ class WebSocketClient {
       const message = JSON.parse(event.data); // 解析 JSON 格式的消息
   
       // 检查消息类型和代码
-      if (message.messageCode === 'HeartBeat') {
+      if (message.messageCode === 'heartbeat') {
         console.log('收到 HEARTBEAT 消息');
-      } else if (message.messageCode === 'Reset') {
+      } else if (message.messageCode === 'reset') {
         console.log('收到 RESET 消息，重新建立通信连接');
         this.close(); // 关闭当前连接
         this.connect(); // 重新建立连接

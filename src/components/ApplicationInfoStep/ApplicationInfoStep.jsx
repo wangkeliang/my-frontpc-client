@@ -42,7 +42,7 @@ const ApplicationStep = forwardRef((props, ref) => {
       }
 
       const applicationData = {
-        applicationType: 'NEW_USER',
+        applicationType: 'new_user',
         relatedObjectId: userInfo.id || '',
         applicantId: userId || '',
         applyTime: new Date().toISOString(),
