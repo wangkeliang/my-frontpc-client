@@ -40,7 +40,7 @@ function App() {
 
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/main" element={<MainPage />} />
+          <Route path="/main/*" element={<MainPage />} />
           <Route path="/register" element={<RegisterPage />} /> {/* 添加注册页面的路由 */}
           <Route path="/confirmation-pending" element={<ConfirmationPendingPage />} />
           <Route path="/emailVerification"  element={<EmailVerificationPage />}/>

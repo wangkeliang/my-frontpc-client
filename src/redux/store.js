@@ -1,6 +1,7 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
-import storageSession from 'redux-persist/lib/storage/session'; // 使用 sessionStorage
+import createIndexedDBStorage from './indexedDBStorage'; // 引入 IndexedDB 存储
+
 import authSlice from './auth/authSlice';
 import userSlice from './user/userSlice';
 import masterSlice from './master/masterSlice';
@@ -15,16 +16,26 @@ import permissionReducer from './permission/permissionSlice';
 import popupErrorReducer from './popupError/popupError';
 import popupInfoSlice from './popupInfoSlice/popupInfoSlice';
 import loadingSlice from './loading/loadingSlice.js';
+import planDetailSlice from './planDetail/planDetailSlice';
+import planHistorySlice from './planHistory/planHistorySlice';
+import planSelectSlice from './planSelect/planSelectSlice';
+import accountNavigateSlice from './accountNavigate/accountNavigateSlice';
+import planPurchaseSlice from './planPurchase/planPurchaseSlice';
+
+
 // 配置 redux-persist
 const persistConfig = {
   key: 'root',
-  storage: storageSession, // 使用 sessionStorage
-  whitelist: ['auth', 'register', 'initialSetup', 'permissions', 'user', 'tab', 'company','application','master'], // 只持久化部分 reducers
+  storage: createIndexedDBStorage('starSkyIndexDb'), // 使用 IndexedDB 存储
+  whitelist: ['auth', 'register', 'initialSetup', 'permissions', 'user', 'tab', 'company', 'application', 'master','planDetail','planHistory','planSelect','accountNavigate','planPurchase'], // 只持久化部分 reducers
 };
 
 const rootReducer = (state, action) => {
   if (action.type === 'root/clearAllStates') {
-    storageSession.removeItem('persist:root'); // 清空持久化存储
+    // 清空持久化存储
+    const storage = createIndexedDBStorage('starSkyIndexDb');
+    console.log('****storage.clear is called');
+    storage.clear();
     state = undefined; // 将 Redux 状态重置为 undefined
   }
   return combineReducers({
@@ -40,8 +51,13 @@ const rootReducer = (state, action) => {
     application: applicationSlice,
     master: masterSlice,
     popupError: popupErrorReducer,
-    popupInfo:popupInfoSlice, 
-    loading:loadingSlice,   
+    popupInfo: popupInfoSlice,
+    loading: loadingSlice,
+    planDetail:planDetailSlice,
+    planHistory:planHistorySlice,
+    planSelect:planSelectSlice,
+    accountNavigate:accountNavigateSlice,
+    planPurchase:planPurchaseSlice,
   })(state, action);
 };
 

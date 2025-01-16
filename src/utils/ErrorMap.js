@@ -129,8 +129,18 @@ class ErrorMap {
         errorMessage: 'サービスアドレスが見つかりませんでした。ネットワークを確認するか、しばらくしてから再試行してください。',
         showType: 'toast',
       });
-
-
+      this.errorMap.set('UNPAID_FEES', {
+        errorMessage: '未納付の料金があります。お支払い後に再度お試しください。',
+        showType: 'alert',
+      });
+      this.errorMap.set('UNPAID_FEES', {
+        errorMessage: '未納付の料金があります。お支払い後に再度お試しください。',
+        showType: 'alert',
+      });
+      this.errorMap.set('PLAN_NOT_ALLOWED', {
+        errorMessage: 'プランが見つかりません。',
+        showType: 'local',
+      });
       // WebSocket関連のエラーメッセージ------------------------------------------------
 
     this.errorMap.set('CONNECTION_CLOSURE_ERROR', {

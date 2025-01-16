@@ -54,59 +54,61 @@ const InitialSetupModal = () => {
   const roleMaster = useSelector((state) => state.master?.roleMaster || []);
   // // 初始化数据加载
   useEffect(() => {
-    try{
-      const initializeSetupData = async () => {  
-        // alert("子组件1: " +"userId: "+ userId + " webSocketSuccess:" + webSocketSuccess );
-        if (userId && webSocketSuccess) {
-          // alert("子组件2: " +"userId: "+ userId + " webSocketSuccess:" + webSocketSuccess );
-          try {
-            if (!userId) {
-              return;
-            }
-            console.log('*** Initial setup data loading starts ***');
-            
+    const initializeSetupData = async () => {
+      if (userId && webSocketSuccess) {
+        console.log('*** Initial setup data loading starts ***');
+        
+        try {
+          const fetchedCompanyId = userInfo?.companyId;
+          const userType = userInfo?.userType;
   
-            const fetchedCompanyId = userInfo.companyId;
-            const userType = userInfo.userType;
-            console.log('***fetchManagerInfo is called');
-            await dispatch(fetchManagerInfo(userId)).unwrap();
-            console.log('***fetchUserRoles is called');
-            await dispatch(fetchUserRoles(userId)).unwrap();
-            console.log('***fetchRoleApplications is called');
-            await dispatch(fetchRoleApplications(userId)).unwrap();
-  
-            if (fetchedCompanyId) {
-              console.log('***fetchCompanyInfo is called');
-              await dispatch(fetchCompanyInfo(fetchedCompanyId)).unwrap();
-              console.log('***fetchCompanyMembers is called');
-              await dispatch(fetchCompanyMembers(fetchedCompanyId)).unwrap();
-              console.log('***fetchCompanyAdmins is called');
-              await dispatch(fetchCompanyAdmins(fetchedCompanyId)).unwrap();
-            }
-  
-            console.log('***fetchRoleMaster is called');
-            await dispatch(fetchRoleMaster(userType)).unwrap();
-
-            console.log('#####roleMaster=',roleMaster);
-            console.log('*** Initial setup data loading completed ***');
-          } catch (error) {
-            console.error('Error during setup:', error);
+          if (!userId) {
+            return; // 如果 userId 不存在，则提前返回
           }
+  
+          console.log('***fetchManagerInfo is called');
+          await dispatch(fetchManagerInfo(userId)).unwrap();
+  
+          console.log('***fetchUserRoles is called');
+          await dispatch(fetchUserRoles(userId)).unwrap();
+  
+          console.log('***fetchRoleApplications is called');
+          await dispatch(fetchRoleApplications(userId)).unwrap();
+  
+          if (fetchedCompanyId) {
+            console.log('***fetchCompanyInfo is called');
+            await dispatch(fetchCompanyInfo(fetchedCompanyId)).unwrap();
+  
+            console.log('***fetchCompanyMembers is called');
+            await dispatch(fetchCompanyMembers(fetchedCompanyId)).unwrap();
+  
+            console.log('***fetchCompanyAdmins is called');
+            await dispatch(fetchCompanyAdmins(fetchedCompanyId)).unwrap();
+          }
+  
+          console.log('***fetchRoleMaster is called');
+          await dispatch(fetchRoleMaster(userType)).unwrap();
+  
+          console.log('#####roleMaster=', roleMaster);
+          console.log('*** Initial setup data loading completed ***');
+        } catch (error) {
+          console.error('Error during setup:', error);
+          ErrorHandler.doCatchedError(
+            error,
+            setLocalError,       // 本地错误处理函数
+            showBoundary,        // 错误边界处理函数
+            'popup',             // GlobalPopupError 处理方式
+            'throw',             // 其他错误处理方式
+            'SYSTEM_ERROR'       // 默认错误代码
+          );
         }
-      };  
-      initializeSetupData();
-    }catch(error){
-      ErrorHandler.doCatchedError(
-        error,
-        setLocalError,       // 本地错误处理函数
-        showBoundary,   // 错误边界处理函数
-        'popup',             // GlobalPopupError 处理方式
-        'throw',             // 其他错误处理方式
-        'SYSTEM_ERROR'       // 默认错误代码
-      );
-    }
-
-  }, [dispatch, userId,webSocketSuccess]);
+      }
+    };
+  
+    // 调用异步函数
+    initializeSetupData();
+  }, [dispatch, userId, webSocketSuccess, userInfo, showBoundary]);
+  
 
 
 

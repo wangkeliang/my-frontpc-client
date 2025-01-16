@@ -1,22 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AppBar, Toolbar, Box, Tabs, Tab, IconButton, Typography, Menu, MenuItem } from '@mui/material';
-import { setActiveTab } from '../../redux/mainLayout/tabSlice';
 import HelpIcon from '@mui/icons-material/Help';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import UserMenu from '../UserMenu/UserMenu'; // 引入 UserMenu 组件
+
 const Header = () => {
   const dispatch = useDispatch();
-  const activeTab = useSelector((state) => state.tab); // Current active tab
+  const navigate = useNavigate();
+  const location = useLocation();
   const permissionInfo = useSelector((state) => state.permissions.permissioninfo); // Permissions
   const [menuAnchor, setMenuAnchor] = useState(null); // For dropdown menu
   const [overflowTabs, setOverflowTabs] = useState([]); // Tabs that overflow
   const tabsContainerRef = useRef(null); // Ref for Tabs container
   const visibleTabs = useRef([]); // For tabs that are visible in the Tabs component
-  console.log('**permissionInfo=',permissionInfo);
 
   const tabsConfig = [
     { id: 'HomeTab', label: 'ホーム', value: 'Home' },
@@ -29,11 +29,12 @@ const Header = () => {
     { id: 'BulletinBoardTab', label: '掲示板', value: 'BulletinBoard' },
   ];
 
-  // Check if a tab is visible based on permissions
+  const activeTab = tabsConfig.find((tab) => location.pathname.includes(tab.value))?.value || false;
+
   const isTabVisible = (tabId) => permissionInfo?.Tab?.[tabId] === 1;
 
   const handleTabChange = (event, newValue) => {
-    dispatch(setActiveTab(newValue));
+    navigate(`/main/${newValue}`);
   };
 
   const handleMenuOpen = (event) => {
@@ -44,7 +45,6 @@ const Header = () => {
     setMenuAnchor(null);
   };
 
-  // Function to calculate which tabs overflow
   const calculateOverflowTabs = () => {
     const containerWidth = tabsContainerRef.current?.offsetWidth || 0;
     const tabs = Array.from(tabsContainerRef.current?.querySelectorAll('.MuiTab-root') || []);
@@ -79,10 +79,10 @@ const Header = () => {
       position="static"
       color="default"
       elevation={1}
-      sx={{ 
+      sx={{
         width: '100%',
-        borderBottom: '0px solid silver' // 设置底部边框颜色为银色
-       }}
+        borderBottom: '0px solid silver', // 设置底部边框颜色为银色
+      }}
     >
       <Toolbar
         sx={{
@@ -102,7 +102,7 @@ const Header = () => {
         {/* Navigation Tabs */}
         <Box ref={tabsContainerRef} flexGrow={1} sx={{ overflow: 'hidden', display: 'flex' }}>
           <Tabs
-            value={activeTab}
+            value={activeTab || false}
             onChange={handleTabChange}
             variant="scrollable"
             scrollButtons="auto"
@@ -152,7 +152,7 @@ const Header = () => {
               <MenuItem
                 key={tab.id}
                 onClick={() => {
-                  dispatch(setActiveTab(tab.value));
+                  navigate(`/main/${tab.value}`);
                   handleMenuClose();
                 }}
               >
@@ -165,24 +165,24 @@ const Header = () => {
         {/* Right Section: Utility Icons */}
         <Box display="flex" alignItems="center" gap={2}>
           {permissionInfo?.UtilityMenu?.UtilityMenu_Help && (
-            <IconButton  aria-label="help">
+            <IconButton aria-label="help">
               <HelpIcon />
             </IconButton>
           )}
 
           {permissionInfo?.UtilityMenu?.UtilityMenu_Settings && (
-            <IconButton  aria-label="settings">
+            <IconButton aria-label="settings">
               <SettingsIcon />
             </IconButton>
           )}
 
           {permissionInfo?.UtilityMenu?.UtilityMenu_Notifications && (
-            <IconButton  aria-label="notifications">
+            <IconButton aria-label="notifications">
               <NotificationsIcon />
             </IconButton>
           )}
 
-           {permissionInfo?.UtilityMenu?.UtilityMenu_UserMenu && <UserMenu />}
+          {permissionInfo?.UtilityMenu?.UtilityMenu_UserMenu && <UserMenu />}
         </Box>
       </Toolbar>
     </AppBar>

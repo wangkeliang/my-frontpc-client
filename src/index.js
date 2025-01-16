@@ -11,9 +11,20 @@ import { ErrorBoundary } from "react-error-boundary";
 import GlobalUiErrorBoundary from './components/Common/GlobalUiErrorBoundary/GlobalUiErrorBoundary';
 import GlobalPopupErrorHandler from './components/Common/GlobalPopupErrorHandler/GlobalPopupErrorHandler';
 import GlobalPopupInfoHandler from './components/Common/GlobalPopupInfoHandler/GlobalPopupInfoHandler';
-
+import createIndexedDBStorage from './redux/indexedDBStorage'; // 引入 IndexedDB 存储
 
 import { useDispatch } from 'react-redux';
+// 监听 beforeunload 事件
+const indexedDBStorage = createIndexedDBStorage('starSkyIndexDb'); // 创建实例
+window.addEventListener('beforeunload', async (event) => {
+  console.log('beforeunload triggered: clearing IndexedDB');
+  try {
+    await indexedDBStorage.clear(); // 清空 IndexedDB 数据
+    console.log('IndexedDB cleared successfully');
+  } catch (error) {
+    console.error('Failed to clear IndexedDB:', error);
+  }  
+});
 
 const container = document.getElementById('root');
 const root = createRoot(container);

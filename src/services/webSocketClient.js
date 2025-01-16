@@ -25,6 +25,7 @@ class WebSocketClient {
     console.log('***fullUrl=', fullUrl);
 
     if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
+      console.log('***this.socket.readyState=',this.socket.readyState);
       console.log('WebSocket 已存在，跳过连接');
       return;
     }
@@ -123,7 +124,7 @@ class WebSocketClient {
   ensureConnected() { 
     return new Promise((resolve, reject) => {
       const MAX_RETRIES = 3; // 最大重试次数
-      const RETRY_INTERVAL = 3000; // 重试间隔时间（30秒）
+      const RETRY_INTERVAL = 500; // 重试间隔时间（30秒）
       let retryCount = 0;
   
       const tryConnect = () => {
@@ -153,9 +154,9 @@ class WebSocketClient {
             clearTimeout(checkConnection);
             resolve();
           } else {
-            console.error('WebSocket 连接失败');
+            // console.error('WebSocket 连接失败');
             clearTimeout(checkConnection);
-  
+
             retryCount += 1;
             if (retryCount < MAX_RETRIES) {
               console.log(`重试第 ${retryCount} 次，等待 ${RETRY_INTERVAL / 1000} 秒...`);
