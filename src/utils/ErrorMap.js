@@ -141,6 +141,11 @@ class ErrorMap {
         errorMessage: 'プランが見つかりません。',
         showType: 'local',
       });
+      this.errorMap.set('NO_PLAN_FOUND', {
+        errorMessage: '該当プランが見つかりません。',
+        showType: 'alert',
+      });
+      
       // WebSocket関連のエラーメッセージ------------------------------------------------
 
     this.errorMap.set('CONNECTION_CLOSURE_ERROR', {

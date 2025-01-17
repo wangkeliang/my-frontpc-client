@@ -32,7 +32,7 @@ const Toast = ({
       onClose={handleSnackbarClose} // 处理关闭逻辑
       anchorOrigin={{ vertical, horizontal }} // 位置参数
       sx={{
-        zIndex: 1200, // 确保显示在前景
+        zIndex: (theme) => theme.zIndex.modal + 1, 
         pointerEvents: 'auto', // 允许交互
       }}
     >

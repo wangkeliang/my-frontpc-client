@@ -5,50 +5,90 @@ import PlanPurchaseInput from '../PlanPurchaseInput/PlanPurchaseInput';
 import PlanPurchaseConfirm from '../PlanPurchaseConfirm/PlanPurchaseConfirm';
 import Payment from '../Payment/Payment';
 import PaymentResult from '../PaymentResult/PaymentResult';
+import { useDispatch } from 'react-redux';
+import { fetchPlanPurchase } from '../../redux/planPurchase/planPurchaseSlice';
+import ErrorHandler from '../../utils/ErrorHandler';
 
 const PlanPurchase = ({ planCode, companyId }) => {
   const [currentStep, setCurrentStep] = useState(1); // 当前步骤
-  const [purchaseData, setPurchaseData] = useState({}); // 保存购买输入数据
+  const [purchaseData, setPurchaseData] = useState({
+    effectiveImmediately: true,
+    startDate: '',
+    isAutoRenew: false,
+    planDetails: null,
+  }); // 初始化用户输入数据
   const [paymentResult, setPaymentResult] = useState(null); // 支付结果
   const [isModalOpen, setIsModalOpen] = useState(false); // 控制模态窗口
 
-  const inputRef = useRef(); // 引用子组件
+  const dispatch = useDispatch();
+  const inputRef = useRef(); // 引用 PlanPurchaseInput 子组件
+  const confirmRef = useRef(); // 引用 PlanPurchaseConfirm 子组件
 
-  // 打开模态窗口
-  const handleOpen = () => {
-    setIsModalOpen(true);
+  // 打开模态窗口并加载数据
+  const handleOpen = async () => {
+    try {
+      const fetchedPlanDetails = await dispatch(fetchPlanPurchase({ planCode, companyId })).unwrap();
+      setPurchaseData((prev) => ({
+        ...prev,
+        planDetails: fetchedPlanDetails,
+        startDate: fetchedPlanDetails.startDate || prev.startDate,
+      }));
+      setIsModalOpen(true);
+    } catch (error) {
+      ErrorHandler.doCatchedError(
+        error,
+        null,
+        null,
+        'popup',
+        'throw',
+        'PLAN_FETCH_ERROR'
+      );
+    }
   };
 
   // 关闭模态窗口
   const handleClose = () => {
     setIsModalOpen(false);
     setCurrentStep(1);
-    setPurchaseData({});
+    setPurchaseData({
+      effectiveImmediately: true,
+      startDate: '',
+      isAutoRenew: false,
+      planDetails: null,
+    });
     setPaymentResult(null);
   };
 
-  // 点击购买按钮时调用子组件方法获取数据
+  // 保存用户输入并进入下一步
   const handlePurchase = async () => {
     if (inputRef.current) {
-      const result = await inputRef.current.saveChanges(); // 调用子组件方法
-  
+      const result = await inputRef.current.saveChanges();
       if (result.checkError) {
-        // 如果有错误，不执行后续操作
         console.error('Input validation failed:', result.input);
         return;
       }
-  
-      // 保存正确的输入数据并进入下一步
       setPurchaseData(result.input);
-      setCurrentStep(2); // 跳转到确认页面
+      setCurrentStep(2);
     }
   };
-  
 
-  // 处理支付结果并跳转到支付结果页面
+  // 确认购买并调用子组件方法
+  const handleConfirmPurchase = async () => {
+    if (confirmRef.current) {
+      const result = await confirmRef.current.confirmPurchase();
+      if (result.success) {
+        console.log('Purchase success:', result.response);
+        setCurrentStep(3); // 跳转到支付页面
+      } else {
+        console.error('Purchase failed:', result.error);
+      }
+    }
+  };
+
+  // 处理支付结果
   const handlePaymentComplete = (result) => {
     setPaymentResult(result);
-    setCurrentStep(4); // 跳转到 PaymentResult 页面
+    setCurrentStep(4);
   };
 
   return (
@@ -74,100 +114,123 @@ const PlanPurchase = ({ planCode, companyId }) => {
         open={isModalOpen}
         onClose={null}
         sx={{
-          backdropFilter: 'blur(5px)',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          overflowY: 'auto', // 启用纵向滚动条
+            position: 'fixed',
+            top: 0,
+            bottom: 0,
+            width: '100%',
+            // height: '100%',
+            backdropFilter: 'blur(5px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.3)', // 黑色半透明背景
+            // zIndex: 1300, // 确保蒙层在最上层
+            overflow: 'auto',
         }}
-      >
+        >
         <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
+            sx={{
+            position: 'fixed',
+            top: '10%', // 保证弹窗顶部有一定间距
+            //   bottom: '10%', // 保证弹窗顶部有一定间距
             left: '50%',
-            transform: 'translate(-50%, -50%)',
+            transform: 'translateX(-50%)',
             width: '620px',
+            //   maxHeight: 'calc(100vh - 20px)', // 最大高度限制在视口内，但留出边距
+            overflow: 'visible', // 防止内容被裁剪
             bgcolor: 'background.paper',
             boxShadow: 24,
             borderRadius: '8px',
             p: 4,
-            minHeight: '400px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
+            }}
         >
-          {/* 右上角关闭按钮 */}
-          <IconButton
+            <IconButton
             onClick={handleClose}
             sx={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
-              color: '#1a237e',
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                color: '#1a237e',
             }}
-          >
+            >
             <CloseIcon />
-          </IconButton>
+            </IconButton>
 
-          {/* 子组件显示 */}
-          {currentStep === 1 && (
-            <PlanPurchaseInput ref={inputRef} planCode={planCode} companyId={companyId} />
-          )}
-          {currentStep === 2 && <PlanPurchaseConfirm purchaseData={purchaseData} />}
-          {currentStep === 3 && (
-            <Payment purchaseData={purchaseData} onPaymentComplete={handlePaymentComplete} />
-          )}
-          {currentStep === 4 && <PaymentResult result={paymentResult} onClose={handleClose} />}
-
-          {/* 按钮 */}
-          <Box sx={{ textAlign: 'right', mt: 2 }}>
+            {/* 内容区域 */}
+            <Box>
             {currentStep === 1 && (
-              <Button variant="contained" onClick={handlePurchase}>
-                購入
-              </Button>
+                <PlanPurchaseInput
+                ref={inputRef}
+                planDetails={purchaseData.planDetails}
+                effectiveImmediately={purchaseData.effectiveImmediately}
+                startDate={purchaseData.startDate}
+                isAutoRenew={purchaseData.isAutoRenew}
+                onSave={(data) => setPurchaseData((prev) => ({ ...prev, ...data }))}
+                />
             )}
             {currentStep === 2 && (
-              <>
-                <Button
-                  variant="outlined"
-                  onClick={() => setCurrentStep(1)}
-                  sx={{ mr: 2 }}
-                >
-                  戻る
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => setCurrentStep(3)}
-                >
-                  確認
-                </Button>
-              </>
+                <PlanPurchaseConfirm
+                ref={confirmRef}
+                purchaseData={purchaseData}
+                />
             )}
             {currentStep === 3 && (
-              <>
-                <Button
-                  variant="outlined"
-                  onClick={() => handlePaymentComplete({ status: 'later' })}
-                  sx={{ mr: 2 }}
-                >
-                  後で支払
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => handlePaymentComplete({ status: 'success' })}
-                >
-                  支払
-                </Button>
-              </>
+                <Payment
+                purchaseData={purchaseData}
+                onPaymentComplete={handlePaymentComplete}
+                />
             )}
             {currentStep === 4 && (
-              <Button variant="contained" onClick={handleClose}>
-                完了
-              </Button>
+                <PaymentResult result={paymentResult} onClose={handleClose} />
             )}
-          </Box>
+            </Box>
+
+            {/* 底部按钮 */}
+            <Box
+            sx={{
+                textAlign: 'right',
+                mt: 2,
+            }}
+            >
+            {currentStep === 1 && (
+                <Button variant="contained" onClick={handlePurchase}>
+                購入
+                </Button>
+            )}
+            {currentStep === 2 && (
+                <>
+                <Button variant="outlined" onClick={() => setCurrentStep(1)} sx={{ mr: 2 }}>
+                    戻る
+                </Button>
+                <Button variant="contained" onClick={handleConfirmPurchase}>
+                    確認
+                </Button>
+                </>
+            )}
+            {currentStep === 3 && (
+                <>
+                <Button
+                    variant="outlined"
+                    onClick={() => handlePaymentComplete({ status: 'later' })}
+                    sx={{ mr: 2 }}
+                >
+                    後で支払
+                </Button>
+                <Button
+                    variant="contained"
+                    onClick={() => handlePaymentComplete({ status: 'success' })}
+                >
+                    支払
+                </Button>
+                </>
+            )}
+            {currentStep === 4 && (
+                <Button variant="contained" onClick={handleClose}>
+                完了
+                </Button>
+            )}
+            </Box>
         </Box>
       </Modal>
+
+
     </>
   );
 };
