@@ -1,83 +1,104 @@
 /* global Fincode */
-import React, { useEffect, useState } from "react";
-import { Box, Typography, Button } from "@mui/material";
-
+import React, { useState, useEffect, useRef } from "react";
+import { Box, Typography, Button, Modal } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import { initFincode, registerCard } from "@fincode/js";
+import { useSelector } from "react-redux";
 const PaymentCreditCardAdd = ({ onCardAdded }) => {
-  const [isMounted, setIsMounted] = useState(false); // 检测UI是否已经挂载
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const fincodeUIId = "fincode-ui-container";
+  const fincodeRef = useRef(null);
+  const uiRef = useRef(null);
+  const { customerData } = useSelector((state) => state.finCode);
 
+  // 初始化 Fincode 对象
   useEffect(() => {
-    // 初始化 Fincode UI
-    const publicKey = "p_test_ZjBjOTE5ZTEtM2FmZS00ZTUzLWE4MjQtY2EyZWUyMjNlMDUwYWYwODI2MjQtNDc3Mi00NzIxLWI2YTAtZjQ0NjVhOWQ1MTc5c18yNTAxMTEyNDM1Ng"; // 替换为真实的公钥
-    const fincode = Fincode(publicKey);
+    const fincodePublicKey =
+      "p_test_YzdjM2I3ODEtZjI3My00MWE3LTg1MWYtOTZmZDdmYTZiMDAyYjcxNjIyOWMtZDYwZi00YjI1LWE3ZjAtYWE2ODMzNDMyNzQ2c18yNTAxMTgzNTE0Mg";
 
-    const ui = fincode.ui({
-      layout: "vertical",
-      hideLabel: false,
-      labelCardNo: "カード番号",
-      labelExpire: "有効期限 (YYMM)",
-      labelCvc: "セキュリティコード",
-      labelHolderName: "カード名義人",
-    });
+    const initializeFincode = async () => {
+      // 初始化 Fincode 实例
+      if (!fincodeRef.current) {
+        fincodeRef.current = await initFincode({
+          publicKey: fincodePublicKey,
+          isLiveMode: false, // 设置为 true 表示生产环境
+        });
+      }
 
-    // 挂载 UI 到指定的 DOM 元素
-    if (!isMounted) {
-      ui.mount("fincode", "400"); // 挂载宽度为 400
-      setIsMounted(true);
+      // 挂载 UI
+      if (isModalOpen) {
+        requestAnimationFrame(() => {
+          // if (!uiRef.current) {
+            uiRef.current = fincodeRef.current.ui({ layout: "horizontal" });
+            uiRef.current.create("payment", { layout: "horizontal" });
+            uiRef.current.mount(fincodeUIId, "500");
+          // }
+        });
+      }
+    };
+
+    initializeFincode();
+  }, [isModalOpen]);
+
+  // 提交信用卡信息到 Fincode
+  const handleSubmit = async () => {
+    setLoading(true);
+    setErrorMessage("");
+
+    if (!customerData?.customer_id) {
+      setErrorMessage("顧客情報が不足しています。再度お試しください。");
+      setLoading(false);
+      return;
     }
 
-    return () => {
-      // 清理挂载
-      setIsMounted(false);
-    };
-  }, [isMounted]);
+    try {
+      // 获取用户输入的信用卡数据
+      const formData = await uiRef.current.getFormData();
+      console.log("Form Data:", formData);
 
-  // 提交表单
-  const handleSubmit = () => {
-    const publicKey = "p_test_eagefdfsfew52443526f5345rf2353466345346ffsdf36345235rf4363fsdsdf45634tg53673523542"; // 替换为真实的公钥
-    const fincode = Fincode(publicKey);
+      // 提交信用卡信息到 Fincode
+      await registerCard({
+        fincode: fincodeRef.current,
+        ui: uiRef.current,
+        customerId: customerData.customer_id, // 从 Redux 中动态获取 customerId
+        useDefault: true, // 设置为默认卡片
+      });
 
-    const ui = fincode.ui();
-    ui.getFormData().then((result) => {
-      console.log("表单数据：", result);
-      // 调用 API 或保存数据
-      onCardAdded(result); // 通知主组件信用卡已添加
-    });
+      // 调用回调函数，通知父组件
+      onCardAdded({
+        number: `**** **** **** ${formData.cardNo.slice(-4)}`,
+        holder: formData.holderName,
+      });
+
+      handleCloseModal();
+    } catch (error) {
+      setErrorMessage(
+        error.message || "クレジットカード登録に失敗しました。再度お試しください。"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setErrorMessage(""); // 清空错误信息
   };
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-        maxWidth: "600px",
-        margin: "0 auto",
-        padding: "20px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-        background: "#fff",
-        borderRadius: "8px",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
-      }}
-    >
-      <Typography
-        variant="h5"
-        sx={{
-          fontWeight: "bold",
-          color: "#1a237e",
-          textAlign: "center",
-        }}
-      >
-        クレジットカードを追加
-      </Typography>
-
-      <form id="fincode-form">
-        <div id="fincode"></div>
-      </form>
-
+    <>
+      {/* 追加按钮 */}
       <Button
         variant="contained"
-        onClick={handleSubmit}
+        startIcon={<AddIcon />}
         sx={{
+          marginTop: 2,
           width: "100%",
           padding: "10px",
           fontWeight: "bold",
@@ -85,10 +106,77 @@ const PaymentCreditCardAdd = ({ onCardAdded }) => {
           backgroundColor: "#1a237e",
           "&:hover": { backgroundColor: "#3949ab" },
         }}
+        onClick={handleOpenModal}
       >
-        登録する
+        クレジットカードを追加
       </Button>
-    </Box>
+
+      {/* 模态窗体 */}
+      {isModalOpen && (
+        <Modal open onClose={handleCloseModal}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              height: "68%",
+              transform: "translate(-50%, -50%)",
+              width: "550px", // 调整宽度
+              padding: "16px", // 减少 padding
+              backgroundColor: "#fff",
+              borderRadius: "10px",
+              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: "bold",
+                color: "#1a237e",
+                marginBottom: 2,
+                textAlign: "center",
+              }}
+            >
+              クレジットカードを追加
+            </Typography>
+
+            {/* 显示错误信息 */}
+            {errorMessage && (
+              <Typography
+                sx={{
+                  color: "red",
+                  fontSize: "0.9rem",
+                  marginBottom: 2,
+                  textAlign: "center",
+                }}
+              >
+                {errorMessage}
+              </Typography>
+            )}
+
+            {/* Fincode UI 容器 */}
+            <form id="fincode-ui-container-form">
+              <div id={fincodeUIId}></div>
+            </form>
+
+            {/* 提交按钮 */}
+            <Button
+              variant="contained"
+              fullWidth
+              sx={{
+                marginTop: 1, // 减少与表单的距离
+                backgroundColor: "#1a237e",
+                "&:hover": { backgroundColor: "#3949ab" },
+              }}
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "登録中..." : "登録する"}
+            </Button>
+          </Box>
+        </Modal>
+      )}
+    </>
   );
 };
 

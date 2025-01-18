@@ -1,5 +1,6 @@
 /* global Fincode */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
   Typography,
@@ -14,21 +15,71 @@ import {
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import AddIcon from "@mui/icons-material/Add";
-import VisaIcon from "@mui/icons-material/Payment";
+
+import PaymentCreditCardAdd from "../PaymentCreditCardAdd/PaymentCreditCardAdd";
+import { fetchFinCodeCustomer,fetchFinCodeCards  } from "../../redux/finCode/finCodeSlice";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCcVisa, faCcMastercard, faCcAmex, faCcDiscover, faCcJcb, faCcDinersClub } from "@fortawesome/free-brands-svg-icons";
+
 
 const Payment = ({ purchaseData, onPaymentComplete }) => {
+  const dispatch = useDispatch();
   const { planDetails } = purchaseData;
   const [paymentMethod, setPaymentMethod] = useState("クレジットカード"); // 初始支付方式
   const [selectedCard, setSelectedCard] = useState(null); // 当前选中的信用卡
   const [modalOpen, setModalOpen] = useState(false);
 
-  // 模拟信用卡数据
-  const cards = Array.from({ length: 3 }, (_, i) => ({
-    id: i + 1,
-    number: `**** **** **** ${1000 + i}`,
-    holder: `持卡人 ${i + 1}`,
-    type: i % 2 === 0 ? "Visa" : "MasterCard",
-  }));
+  const [cards, setCards] = useState([]);
+  const [addCardModalOpen, setAddCardModalOpen] = useState(false);
+  const { userId, companyId } = useSelector((state) => state.auth);
+  const { customerData, fetchCustomerLoading, cardsData } = useSelector(
+    (state) => state.finCode
+  );
+// 根据品牌返回对应的图标组件
+const CardIcon = ({ brand }) => {
+  switch (brand) {
+    case "VISA":
+      return <FontAwesomeIcon icon={faCcVisa} size="2x" color="#1a237e" />;
+    case "MASTER":
+      return <FontAwesomeIcon icon={faCcMastercard} size="2x" color="#f79e1b" />;
+    case "AMEX":
+      return <FontAwesomeIcon icon={faCcAmex} size="2x" color="#016fd0" />;
+    case "DISCOVER":
+      return <FontAwesomeIcon icon={faCcDiscover} size="2x" color="#ff6000" />;
+    case "JCB":
+      return <FontAwesomeIcon icon={faCcJcb} size="2x" color="#0060a9" />;
+    case "DINERS":
+      return <FontAwesomeIcon icon={faCcDinersClub} size="2x" color="#1a237e" />;
+    default:
+      return <FontAwesomeIcon icon={faCcVisa} size="2x" color="#999" />;
+  }
+};
+
+  useEffect(() => {
+    // 在页面加载时获取客户信息和信用卡信息
+    dispatch(fetchFinCodeCustomer({ companyId, userId })); // 获取客户信息
+  }, [dispatch, companyId, userId]);
+  
+  useEffect(() => {
+    // 如果 customerData 存在且 companyId 存在，则获取信用卡信息
+    if (companyId) {
+      dispatch(fetchFinCodeCards({ companyId })); // 获取信用卡信息
+      // dispatch(fetchFinCodeCards({ '111' })); /
+    }
+  }, [dispatch, companyId]);
+  
+  useEffect(() => {
+    // 当 cardsData 发生变化时，更新信用卡列表
+    console.log("***cardsData=",cardsData);
+    if (cardsData?.list) {
+      setCards(cardsData.list);
+    }
+  }, [cardsData]);
+
+  const handleAddCard = () => {
+    dispatch(fetchFinCodeCards({ companyId })); // 获取信用卡信息
+  };
+
 
   const handleModalOpen = () => setModalOpen(true);
   const handleModalClose = () => setModalOpen(false);
@@ -207,7 +258,6 @@ const Payment = ({ purchaseData, onPaymentComplete }) => {
                 </Typography>
               </Box>
             ) : (
-              // 有数据时渲染卡片列表
               cards.map((card) => (
                 <Box
                   key={card.id}
@@ -215,54 +265,92 @@ const Payment = ({ purchaseData, onPaymentComplete }) => {
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    padding: "0.5% 1%",
-                    background: selectedCard === card.id ? "#e3f2fd" : "#fff",
-                    border: selectedCard === card.id
-                      ? "2px solid #1a237e"
-                      : "1px solid #ddd",
-                    borderRadius: "8px",
-                    marginBottom: 1,
-                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                    padding: "12px 16px",
+                    backgroundColor: selectedCard === card.id ? "#d8ecf8" : "#f9f9f9",
+                    border: selectedCard === card.id ? "2px solid #0288d1" : "1px solid #e0e0e0",
+                    borderRadius: "12px",
+                    marginBottom: "16px",
+                    boxShadow: selectedCard === card.id
+                      ? "0 6px 12px rgba(2, 136, 209, 0.3)"
+                      : "0 2px 6px rgba(0, 0, 0, 0.1)",
+                    transition: "all 0.3s ease-in-out",
+                    cursor: "pointer",
+                    "&:hover": {
+                      backgroundColor: "#e3f2fd",
+                    },
                   }}
+                  onClick={() => handleSelectCard(card.id)}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  {/* 左侧内容：单选按钮 + 卡片信息 */}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
                     <Radio
                       checked={selectedCard === card.id}
                       onChange={() => handleSelectCard(card.id)}
-                      sx={{ color: "#1a237e" }}
+                      sx={{
+                        color: "#0288d1",
+                        "&.Mui-checked": {
+                          color: "#0288d1",
+                        },
+                      }}
                     />
-                    <VisaIcon sx={{ color: "#1a237e", fontSize: "1.5rem" }} />
+                    <CardIcon brand={card.brand} /> {/* 动态显示信用卡品牌图标 */}
                     <Box
                       sx={{
                         display: "flex",
                         flexDirection: "column",
-                        gap: "2px",
+                        gap: "4px",
                       }}
                     >
-                      <Typography sx={{ fontSize: "1rem", color: "#333" }}>
-                        {card.number}
+                      <Typography
+                        sx={{
+                          fontSize: "1rem",
+                          fontWeight: "bold",
+                          color: "#333",
+                          fontFamily: "Roboto, Arial, sans-serif",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: "200px",
+                        }}
+                      >
+                        **** **** **** {card.card_no.slice(-4)}
                       </Typography>
-                      <Typography sx={{ fontSize: "0.8rem", color: "#666" }}>
-                        {card.type} - 有効期限: {`12/${25 + card.id}`}
+                      <Typography
+                        sx={{
+                          fontSize: "0.9rem",
+                          fontWeight: "300",
+                          color: "#757575",
+                          fontFamily: "Roboto, Arial, sans-serif",
+                        }}
+                      >
+                        有効期限: {`${card.expire.slice(0, 2)}/${card.expire.slice(2, 4)}`}
                       </Typography>
                     </Box>
                   </Box>
+              
+                  {/* 右侧持卡人信息 */}
                   <Typography
                     sx={{
                       fontSize: "0.9rem",
-                      color: "#666",
+                      fontWeight: "500",
+                      color: "#424242",
+                      fontFamily: "Roboto, Arial, sans-serif",
+                      textAlign: "right",
                       marginRight: "8px",
                     }}
                   >
-                    {card.holder}
+                    {card.holder_name || "未登録"}
                   </Typography>
                 </Box>
               ))
+              
+              
+              
             )}
           </Box>
-
+          <PaymentCreditCardAdd onCardAdded={handleAddCard} />
           {/* 追加信用卡按钮（即使卡为空时显示） */}
-          <Button
+          {/* <Button
             variant="contained"
             startIcon={<AddIcon />}
             sx={{
@@ -280,7 +368,7 @@ const Payment = ({ purchaseData, onPaymentComplete }) => {
             }}
           >
             クレジットカードを追加
-          </Button>
+          </Button> */}
         </>
       )}
 

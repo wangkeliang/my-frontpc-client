@@ -21,13 +21,15 @@ import planHistorySlice from './planHistory/planHistorySlice';
 import planSelectSlice from './planSelect/planSelectSlice';
 import accountNavigateSlice from './accountNavigate/accountNavigateSlice';
 import planPurchaseSlice from './planPurchase/planPurchaseSlice';
+import finCodeSlice from './finCode/finCodeSlice';
+
 
 
 // 配置 redux-persist
 const persistConfig = {
   key: 'root',
   storage: createIndexedDBStorage('starSkyIndexDb'), // 使用 IndexedDB 存储
-  whitelist: ['auth', 'register', 'initialSetup', 'permissions', 'user', 'tab', 'company', 'application', 'master','planDetail','planHistory','planSelect','accountNavigate','planPurchase'], // 只持久化部分 reducers
+  whitelist: ['auth', 'register', 'initialSetup', 'permissions', 'user', 'tab', 'company', 'application', 'master','planDetail','planHistory','planSelect','accountNavigate','planPurchase','finCode'], // 只持久化部分 reducers
 };
 
 const rootReducer = (state, action) => {
@@ -58,6 +60,7 @@ const rootReducer = (state, action) => {
     planSelect:planSelectSlice,
     accountNavigate:accountNavigateSlice,
     planPurchase:planPurchaseSlice,
+    finCode:finCodeSlice
   })(state, action);
 };
 
