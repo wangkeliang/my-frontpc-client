@@ -4,6 +4,7 @@ import { setWebSocketSuccess } from '../redux/auth/authSlice'; // 导入 action
 import ErrorMap from '../utils/ErrorMap';
 import { GlobalPopupError } from '../utils/GlobalPopupError';
 import { setPopupError } from '../redux/popupError/popupError';
+import { setCardPaymentWebhookResult,setBankPaymentWebhookResult } from '../redux/finCode/finCodeSlice';
 class WebSocketClient {
   constructor() {
     if (!WebSocketClient.instance) {
@@ -70,6 +71,18 @@ class WebSocketClient {
         console.log('收到 RESET 消息，重新建立通信连接');
         this.close(); // 关闭当前连接
         this.connect(); // 重新建立连接
+      } else if (message.messageCode === 'card_payment_webhook') {
+        console.log('收到 card_payment_webhook 消息，存储到 Redux:', message.messageBody);
+  
+        // 调用 Redux action 存储到 Redux 中
+        store.dispatch(setCardPaymentWebhookResult(message.messageBody));
+
+      } else if (message.messageCode === 'bank_transfer_webhook') {
+        console.log('收到 Bank_payment_webhook 消息，存储到 Redux:', message.messageBody);
+  
+        // 调用 Redux action 存储到 Redux 中
+        store.dispatch(setBankPaymentWebhookResult(message.messageBody));
+
       } else {
         console.warn('未识别的消息类型:', message.messageCode);
       }

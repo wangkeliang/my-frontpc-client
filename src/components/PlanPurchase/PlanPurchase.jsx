@@ -23,7 +23,7 @@ const PlanPurchase = ({ planCode, companyId }) => {
   const dispatch = useDispatch();
   const inputRef = useRef(); // 引用 PlanPurchaseInput 子组件
   const confirmRef = useRef(); // 引用 PlanPurchaseConfirm 子组件
-
+  const paymentRef = useRef();
   // 打开模态窗口并加载数据
   const handleOpen = async () => {
     try {
@@ -85,8 +85,34 @@ const PlanPurchase = ({ planCode, companyId }) => {
     }
   };
 
-  // 处理支付结果
-  const handlePaymentComplete = (result) => {
+  // 支付执行
+  const handlePaymentClick  = async () => {
+    if (paymentRef.current) {
+      const paymentSuccess = await paymentRef.current.handlePayment();
+      // if (paymentSuccess) {
+      //   setPaymentResult({ status: 'success' });
+      //   // setCurrentStep(4);  // 跳转到支付结果页面
+      // } else {
+      //   console.error("支払いに失敗しました。");
+      // }
+    }
+  };
+  //处理支付结果
+  const doPaymentResult = (result) => {
+    console.log("Received payment result:", result);
+  
+    // 保存支付信息，例如支付状态、支付方式等
+    setPaymentResult(result);
+  
+    if (result.status === 'success') {
+      // 支付成功，跳转到支付结果页面
+      setCurrentStep(4);
+    } 
+  };
+  
+  
+  const handlePaymentLatterClick = (result) => {
+
     setPaymentResult(result);
     setCurrentStep(4);
   };
@@ -173,8 +199,9 @@ const PlanPurchase = ({ planCode, companyId }) => {
             )}
             {currentStep === 3 && (
                 <Payment
+                ref={paymentRef}
                 purchaseData={purchaseData}
-                onPaymentComplete={handlePaymentComplete}
+                doPaymentResult={(result) => doPaymentResult(result)}  // 传递带参数的回调
                 />
             )}
             {currentStep === 4 && (
@@ -208,14 +235,14 @@ const PlanPurchase = ({ planCode, companyId }) => {
                 <>
                 <Button
                     variant="outlined"
-                    onClick={() => handlePaymentComplete({ status: 'later' })}
+                    onClick={() => handlePaymentLatterClick({ status: 'later' })}
                     sx={{ mr: 2 }}
                 >
                     後で支払
                 </Button>
                 <Button
                     variant="contained"
-                    onClick={() => handlePaymentComplete({ status: 'success' })}
+                    onClick={() => handlePaymentClick({ status: 'success' })}
                 >
                     支払
                 </Button>

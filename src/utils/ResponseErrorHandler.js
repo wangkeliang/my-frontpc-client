@@ -29,13 +29,22 @@ export const ResponseErrorHandler = (response, onLocalError, onGlobalError) => {
     }
 
     // エラーコードに基づいてマッピングから設定を取得
-    const errorConfig = ErrorMap.getError(serverErrorCode);
+    const errorConfig = ErrorMap.getErrorByServerErrorCode(serverErrorCode,serverErrorMessage)||{};
 
     const errorDetail = {
-      error: response?.data?.error, // サーバーエラー全体を保存
+      error: response?.data?.error[0], // サーバーエラー全体を保存
       ...errorConfig,
     };
     console.log('****errorDetail=',errorDetail);
+    //FinCodeエラーはすべてLocalErrorとして処理する
+    if (errorDetail.errorCode?.startsWith('FinCode-')) {
+      onLocalError(
+        new LocalError({
+          ...errorDetail,
+        })
+      );
+      return; // ここで終了
+    }
 
     if (errorDetail.showType === 'local') {
       console.log('***errorDetail.showType=',errorDetail.showType);

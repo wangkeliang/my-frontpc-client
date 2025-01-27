@@ -17,48 +17,32 @@ import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import AddIcon from "@mui/icons-material/Add";
 
 import PaymentCreditCardAdd from "../PaymentCreditCardAdd/PaymentCreditCardAdd";
-import { 
-  fetchFinCodeCustomer, 
-  fetchFinCodeCards, 
-  registerPayment, 
-  processPayment, 
-  clearFinCodeData, 
-  clearCardsData, 
-  clearRegisterPaymentData, 
-  clearPaymentData, 
-  clearCardPaymentWebhookResult,
-  clearBankPaymentWebhookResult
- } from "../../redux/finCode/finCodeSlice";
+import { fetchFinCodeCustomer,fetchFinCodeCards,processPayment  } from "../../redux/finCode/finCodeSlice";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCcVisa, faCcMastercard, faCcAmex, faCcDiscover, faCcJcb, faCcDinersClub } from "@fortawesome/free-brands-svg-icons";
 
 import ErrorHandler from "../../utils/ErrorHandler"; // 错误处理工具
 import { LocalError } from "../../utils/LocalError"; // 引入 LocalError
 import { useErrorBoundary } from "react-error-boundary"; // 错误边界
-import { AccessibleRounded } from "@mui/icons-material";
 
-const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
+const Payment = forwardRef(({ purchaseData }, ref) => {
   const dispatch = useDispatch();
   const { planDetails } = purchaseData;
-  const [pay_type, setPayType] = useState("クレジットカード"); // 初始支付方式
+  const [paymentMethod, setPaymentMethod] = useState("クレジットカード"); // 初始支付方式
   const [selectedCard, setSelectedCard] = useState(null); // 当前选中的信用卡
   const [modalOpen, setModalOpen] = useState(false);
   const [modalOpenCreditCard, setModalOpenCreditCard] = useState(false);
   const [addCardModalOpen, setAddCardModalOpen] = useState(false); // 控制添加信用卡模态窗体
-
+  const [paymentRedirectUrl, setPaymentRedirectUrl] = useState(null);
   const [cards, setCards] = useState([]);
   const { userId, companyId } = useSelector((state) => state.auth);
   const { customerData, fetchCustomerLoading, cardsData,paymentData } = useSelector(
     (state) => state.finCode
   );
-  const cardWebhookResult = useSelector((state) => state.finCode.cardPaymentWebhookResult);
-  const bankWebhookResult = useSelector((state) => state.finCode.bankPaymentWebhookResult);
-  const [isPaymentAuthWindowClosed, setIsPaymentAuthWindowClosed] = useState(false);
   const { showBoundary } = useErrorBoundary(); // 错误边界函数
   const [localError, setLocalError] = useState(null); // 本地错误状态
-
   useImperativeHandle(ref, () => ({
-    handlePayment,
+    handleCreditCardPayment,
   }));
   // 根据品牌返回对应的图标组件
   const CardIcon = ({ brand }) => {
@@ -82,9 +66,6 @@ const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
 
   // 获取客户信息
   useEffect(() => {
-    // 组件加载时先清空所有支付相关数据
-    setLocalError(null);
-    dispatch(clearFinCodeData());
     const fetchCustomer = async () => {
       try {
         await dispatch(fetchFinCodeCustomer({ companyId, userId })).unwrap();
@@ -106,25 +87,26 @@ const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
   
   // 获取信用卡信息
   useEffect(() => {
-    // 清空相关支付信息，客户信息保持不变
-    dispatch(clearCardsData());
-    fetchCreditCards();
+    const fetchCards = async () => {
+      try {
+        if (companyId) {
+          await dispatch(fetchFinCodeCards({ companyId })).unwrap();
+        }
+      } catch (error) {
+        ErrorHandler.doCatchedError(
+          error,
+          setLocalError, // 本地错误处理函数
+          showBoundary, // 错误边界处理函数
+          "popup", // GlobalPopupError 处理方式
+          "throw", // 其他错误处理方式
+          "SYSTEM_ERROR" // 默认错误代码
+        );
+      }
+    };
+
+    fetchCards();
   }, [dispatch, companyId, showBoundary]);
 
-  const fetchCreditCards = async () => {
-    try {
-      await dispatch(fetchFinCodeCards({ companyId })).unwrap();
-    } catch (error) {
-      ErrorHandler.doCatchedError(
-        error,
-        setLocalError,
-        showBoundary,
-        "popup",
-        "throw",
-        "SYSTEM_ERROR"
-      );
-    }
-  };
 
   useEffect(() => {
     // 当 cardsData 发生变化时，更新信用卡列表
@@ -134,114 +116,16 @@ const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
     }
   }, [cardsData]);
 
+  // 监听 paymentData?.redirect_url 更新状态
+useEffect(() => {
+  if (paymentData?.redirect_url) {
+    setPaymentRedirectUrl(paymentData.redirect_url);
+    setModalOpenCreditCard(true);
+  }
+}, [paymentData?.redirect_url]);
 
-  useEffect(() => {
-    console.log('***paymentData?.redirect_url=',paymentData?.redirect_url);
-    if (paymentData?.redirect_url) {
-      setLocalError(null);
-      const screenWidth = window.screen.width;
-      const screenHeight = window.screen.height;
-      const popupWidth = 800;
-      const popupHeight = 600;
-      const left = (screenWidth - popupWidth) / 2;
-      const top = (screenHeight - popupHeight) / 2;
-  
-      // 打开支付认证窗口
-      const paymentAuthWindow = window.open(
-        paymentData.redirect_url,
-        "_blank",
-        `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=yes,status=no,toolbar=no,menubar=no`
-      );
-  
-      setIsPaymentAuthWindowClosed(false); // 设置支付认证窗口打开状态
-  
-      // 定义回调函数，供支付窗口关闭后调用
-      const handlePaymentAuthWindowClose = () => {
-        console.log("支付认证窗口已关闭");
-        dispatch(clearPaymentData());
-        console.log('★★★paymentData?.redirect_url=',paymentData?.redirect_url);
-        setIsPaymentAuthWindowClosed(true); // 记录支付认证窗口关闭状态
-      };
-  
-      // 监听窗口关闭
-      const interval = setInterval(() => {
-        if (paymentAuthWindow && paymentAuthWindow.closed) {
-          console.log('***setInterval');
-          clearInterval(interval);
-          handlePaymentAuthWindowClose();
-        }
-      }, 100);
-  
-      // 处理窗口关闭事件（更快地触发）
-      paymentAuthWindow.onbeforeunload = () => {
-        console.log('***onbeforeunload');
-        clearInterval(interval);        
-        handlePaymentAuthWindowClose();
-      };
-  
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [paymentData?.redirect_url]);
-
-
-  useEffect(() => {
-    console.log('***isPaymentAuthWindowClosed=',isPaymentAuthWindowClosed);
-    console.log('***cardWebhookResult=',cardWebhookResult);
-    if (isPaymentAuthWindowClosed && cardWebhookResult) {
-      console.log("Webhook 结果:", cardWebhookResult);
-      if (cardWebhookResult.isSuccess) {
-        doPaymentResult({
-          status: 'success',
-          method: pay_type,  // 传递支付方式（クレジットカード 或 銀行振込）
-          details: selectedCard ? `**** **** **** ${selectedCard.card_no.slice(-4)}` : '銀行振込',
-        });
-      } else {
-        setLocalError(new LocalError({ errorMessage: cardWebhookResult.error?.errorMessage}));
-        doPaymentResult({
-          status: 'failure',
-          method: pay_type,
-          details: cardWebhookResult.error?.errorMessage || "支払い失敗",
-        });
-      }
-    }
-  }, [isPaymentAuthWindowClosed, cardWebhookResult]);
-
-
-  useEffect(() => {    
-    console.log('***bankWebhookResult=',bankWebhookResult);
-    if (bankWebhookResult) {
-      console.log("Webhook 结果:", bankWebhookResult);
-      if (bankWebhookResult.isSuccess) {
-        doPaymentResult({
-          status: 'success',
-          method: pay_type,  // 传递支付方式（クレジットカード 或 銀行振込）
-          details: '銀行振込',
-        });
-      } else {
-        setLocalError(new LocalError({ errorMessage: bankWebhookResult.error?.errorMessage}));
-        doPaymentResult({
-          status: 'failure',
-          method: pay_type,
-          details: bankWebhookResult.error?.errorMessage || "支払い失敗",
-        });
-      }
-      dispatch(clearBankPaymentWebhookResult());
-    }
-  }, [bankWebhookResult]);
-
-  // 组件内部方法，处理支付完成
-  const handlePaymentCompletion = (result) => {
-    //获得当前的支付完后的状态
-
-    
-  };
-  
-  
 
   const handleAddCard = async () => {
-    setLocalError(null);
     console.log('***handleAddCard.companyId=',companyId);
     try {
       await dispatch(fetchFinCodeCards({ companyId })).unwrap();
@@ -258,90 +142,28 @@ const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
   };
 
 
-  const handlePayment = async () => {
-    let paymentType = "";
-    let paymentPayload = {};
-    let  registerPayload = {};
-      // 在发起支付之前先清空支付相关数据
-      setLocalError(null);
-      dispatch(clearRegisterPaymentData());
-      dispatch(clearPaymentData());
-      dispatch(clearCardPaymentWebhookResult());
-      dispatch(clearBankPaymentWebhookResult());
-      
-    
-    if (pay_type === "クレジットカード") {
-      if (!selectedCard) {
-        setLocalError(new LocalError({ errorMessage: 'クレジットカードを選択してください。'}));
-        return false;
-      }
-      paymentType = "Card";
-      registerPayload = {
+  const handleCreditCardPayment = async () => {
+    if (!selectedCard) {
+      alert("クレジットカードを選択してください。");
+      return;
+    }
+  
+ 
+    try {
+      const paymentPayload = {
         companyId,
         userId,
-        pay_type: paymentType,
-        amount: planDetails?.plan?.basePrice,
-      };
-
-      paymentPayload = {
-        companyId,
-        userId,
-        orderId: null,  // 先占位，后续赋值
-        accessId: null, // 先占位，后续赋值
-        pay_type: paymentType,
-        amount: planDetails?.plan?.basePrice,
+        paymentMethod: "Card",
+        amount: purchaseData.planDetails.plan.basePrice,
         card: {
           customer_id: selectedCard.customer_id,
           card_id: selectedCard.id,
         },
       };
-    } else if (pay_type === "銀行振込") {
-      paymentType = "Virtualaccount";
-      registerPayload = {
-        companyId,
-        userId,
-        pay_type: paymentType,
-        billing_amount: planDetails?.plan?.basePrice,
-      };
-      paymentPayload = {
-        companyId,
-        userId,
-        orderId: null,  // 先占位，后续赋值
-        accessId: null, // 先占位，后续赋值
-        pay_type: paymentType,
-        billing_amount: planDetails?.plan?.basePrice,
-        paymentTermDay:10,
-      };
-    } else {
-      setLocalError(new LocalError({ errorMessage: 'お支払い方法を選択してください。'}));
-      return false;
-    }
-  
-    try {
-      // 先注册支付信息，获取 orderId 和 accessId 
-
-  
-      console.log("**** registerPayment payload:", registerPayload);
-  
-      const registerResponse = await dispatch(registerPayment(registerPayload)).unwrap();
-  
-      console.log("**** registerPayment response:", registerResponse);
-  
-      if (!registerResponse || !registerResponse.orderId || !registerResponse.accessId) {
-        setLocalError(new LocalError({ errorMessage: '支払登録に失敗しました。'}));
-        return false;
-      }
-  
-      // 将获取到的 orderId 和 accessId 设置到支付请求参数
-      paymentPayload.orderId = registerResponse.orderId;
-      paymentPayload.accessId = registerResponse.accessId;
-  
-      console.log("**** paymentPayload:", paymentPayload);
+      console.log('****paymentPayload=',paymentPayload);
   
       // 触发支付请求
       await dispatch(processPayment(paymentPayload)).unwrap();
-  
-      return true;  // 支付成功
     } catch (error) {
       ErrorHandler.doCatchedError(
         error,
@@ -351,12 +173,10 @@ const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
         "throw",
         "SYSTEM_ERROR"
       );
-      return false;  // 支付失败
+    } finally {
+
     }
   };
-  
-
-  
   
   const handleModalOpen = () => setModalOpen(true);
   const handleModalClose = () => setModalOpen(false);
@@ -371,25 +191,19 @@ const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
 
 
   const handleSelectMethod = (method) => {
-    setPayType(method);
-  
-    // 清空相关支付信息，客户信息保持不变
-    setLocalError(null);
-    dispatch(clearCardsData());
-    dispatch(clearRegisterPaymentData());
-    dispatch(clearPaymentData());
-    dispatch(clearCardPaymentWebhookResult());
-    dispatch(clearBankPaymentWebhookResult());
+    setPaymentMethod(method);
     handleModalClose();
-  
-    if (method === "クレジットカード") {
-      fetchCreditCards();
-    }
   };
 
   const handleSelectCard = (card) => {
     setSelectedCard(card);
   };
+
+// 关闭模态窗体时清空 URL
+const handleCloseModalCreditCard = () => {
+  setModalOpenCreditCard(false);  // 关闭模态窗口
+  setPaymentRedirectUrl(null);    // 清空支付 URL
+};
 
   return (
     <Box
@@ -505,7 +319,7 @@ const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
             color: "#333",
           }}
         >
-          {pay_type}
+          {paymentMethod}
         </Typography>
         <Typography
           sx={{
@@ -518,7 +332,7 @@ const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
       </Box>
 
       {/* 信用卡或银行转账显示区域 */}
-      {pay_type === "クレジットカード" && (
+      {paymentMethod === "クレジットカード" && (
       <>
         <Box
           sx={{
@@ -709,7 +523,7 @@ const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
 
 
 
-    {pay_type === "銀行振込" && (
+    {paymentMethod === "銀行振込" && (
     <Box
         sx={{
         width: "100%",
@@ -836,6 +650,53 @@ const Payment = forwardRef(({ purchaseData, doPaymentResult }, ref) => {
           </List>
         </Box>
       </Modal>
+
+      <div>
+        {modalOpenCreditCard && (
+          <Modal open={modalOpenCreditCard} onClose={handleCloseModalCreditCard}>
+            <Box 
+              sx={{ 
+                width: "100%", 
+                height: "100%", 
+                margin: "auto", 
+                position: "relative" 
+              }}
+            >
+              {/* 关闭按钮 */}
+              <Button 
+                onClick={handleCloseModalCreditCard} 
+                sx={{
+                  position: "absolute",
+                  top: "16px",
+                  right: "16px",
+                  backgroundColor: "#f5f5f5",
+                  borderRadius: "50%",
+                  width: "40px",
+                  height: "40px",
+                  minWidth: "40px",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+                  fontSize: "20px",
+                  color: "#333",
+                  "&:hover": {
+                    backgroundColor: "#e0e0e0"
+                  }
+                }}
+              >
+                ×
+              </Button>
+
+              <iframe 
+                id="fincodeIframe"
+                src={paymentData?.redirect_url} 
+                width="100%" 
+                height="100%" 
+                style={{ border: "none" }} 
+                sandbox="allow-scripts allow-forms allow-same-origin"
+              />
+            </Box>
+          </Modal>
+        )}
+      </div>
     </Box>
   );
 });

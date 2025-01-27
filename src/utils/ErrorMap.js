@@ -201,6 +201,10 @@ class ErrorMap {
         errorMessage: 'ネットワークに接続されていません。接続状況をご確認ください。',
         showType: 'toast',
     });
+    this.errorMap.set('INVALID_PAYMENT_AMOUNT', {
+      errorMessage: '無効な支払金額です。金額を確認してください。',
+      showType: 'local',
+    });
     
 }
   
@@ -214,6 +218,27 @@ class ErrorMap {
         serverErrorCode: errorCode,
         serverErrorMessage: errorConfig.errorMessage || 'エラーが発生しました。',
         errorCode: errorCode,
+        errorMessage: errorConfig.errorMessage || 'エラーが発生しました。',
+        showType: errorConfig.showType || 'alert',
+      };
+    }
+
+    // 指定したエラーコードでエラー情報を取得
+    getErrorByServerErrorCode(ServerErrorCode, ServerErrorMessage) {
+      const errorConfig = this.errorMap.get(ServerErrorCode);
+      if (!errorConfig){
+        return {
+          serverErrorCode: ServerErrorCode,
+          serverErrorMessage: ServerErrorMessage || 'エラーが発生しました。',
+          errorCode: ServerErrorCode,
+          errorMessage: ServerErrorMessage || 'エラーが発生しました。',
+          showType: 'alert',
+        };
+      }
+      return {
+        serverErrorCode: ServerErrorCode,
+        serverErrorMessage: ServerErrorMessage || 'エラーが発生しました。',
+        errorCode: errorConfig.errorCode,
         errorMessage: errorConfig.errorMessage || 'エラーが発生しました。',
         showType: errorConfig.showType || 'alert',
       };
